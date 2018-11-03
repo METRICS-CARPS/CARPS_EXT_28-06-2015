@@ -1,0 +1,586 @@
+---
+title: "CARPS Reproducibility Report"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+[PILOT/COPILOT - TEXT IN SQUARE BRACKETS IS HERE FOR GUIDANCE. COPILOT PLEASE DELETE BEFORE KNITTING THE FINAL REPORT]
+
+# Report Details
+
+[PILOT/COPILOT ENTER RELEVANT REPORT DETAILS HERE]
+
+```{r}
+articleID <- "EXT_28-06-2015" # insert the article ID code here e.g., "10-3-2015_PS"
+reportType <- 'pilot' # specify whether this is the 'pilot' report or 'final' report
+pilotNames <- "Mark Miller" # insert the pilot's name here e.g., "Tom Hardwicke".  If there are multiple cpilots enter both names in a character string e.g., "Tom Hardwicke, Bob Dylan"
+copilotNames <- NA # # insert the co-pilot's name here e.g., "Michael Frank". If there are multiple co-pilots enter both names in a character string e.g., "Tom Hardwicke, Bob Dylan"
+pilotTTC <- 500 # insert the pilot's estimated time to complete (in minutes, fine to approximate) e.g., 120
+copilotTTC <- NA # insert the co-pilot's estimated time to complete (in minutes, fine to approximate) e.g., 120
+pilotStartDate <- as.Date("10/01/18", format = "%m/%d/%y") # insert the pilot's start date in US format e.g., as.Date("01/25/18", format = "%m/%d/%y")
+copilotStartDate <- NA # insert the co-pilot's start date in US format e.g., as.Date("01/25/18", format = "%m/%d/%y")
+completionDate <- NA # copilot insert the date of final report completion (after any necessary rounds of author assistance) in US format e.g., as.Date("01/25/18", format = "%m/%d/%y")
+```
+
+------
+
+#### Methods summary: 
+
+[PILOT/COPILOT write a brief summary of the methods underlying the target outcomes written in your own words]
+
+In this paper, Zerr er al. investigate individual differences in adult learning. In Study 1 in particular, N=291 participants from Mechanical Turk learn Lithuanian-English word pairs. The learning stage happened twice over two days. Each day consisted of 16 trials where each trial consisted of only the words the participant did not answer correctly in the trial before, i.e, once the word is correctly answered, it drops from the list. Once the participant answered all 45 words correctly, two distractor tasks were given: math problems and Tetris. At the end of the session on each day, the participant was tested on all 45 words, and the number of words correct was noted. 
+
+------
+
+#### Target outcomes: 
+
+For this article you should focus on the findings reported in the results section for Study 1 "Performance across days".
+
+Specifically, you should attempt to reproduce all descriptive and inferential analyses reported in the text below and associated tables/figures:
+
+> Performance across days. The learning curves for
+participants on the first day can be found in Figure 2 (top
+panel). Here one can see considerable variability in performance
+in all three measures (Test 1, tests to criterion,
+and final test) across participants, as well as across quartiles
+when binned by overall task performance (Fig. 2,
+bottom panel).
+> 
+> For Test 1, after studying the items once, participants
+on Day 1 recalled an average of 9.4 English words (SD =
+6.6) and on Day 2 an average of 11.1 words (SD = 8.2).
+To reach criterion, participants took an average of 8.3
+tests (SD = 2.9) on Day 1 and 7.6 tests (SD = 2.8) on
+Day 2. The average cued-recall score on the final test
+was 33.4 words (SD = 7.9) on Day 1 and 33.2 words
+(SD = 8.7) on Day 2. For Day 1, the entire task (including
+informed consent, directions, and the 5-min delay)
+took an average of 50.3 min to complete (SD = 13.2,
+range = 28.8–119.0), whereas Day 2 took an average of
+45.7 min (SD = 14.0, range = 26.6–115.3). Additional
+descriptive statistics are in Table 1.
+> 
+> Participants who performed better on the initial test
+reached criterion more quickly (i.e., required fewer
+tests to criterion) on Day 1, r = −.60, p < .001, 95%
+confidence interval (CI) = [−.67, −.52], and Day 2, r =
+−.63, p < .001, 95% CI = [−.69, −.55]. Participants who
+reached criterion quickly also had better retention of
+the word pairs after a delay (i.e., better final-test scores)
+on Day 1, r = −.57, p < .001, 95% CI = [−.64, −.49], andDay 2, r = −.48, p < .001, 95% CI = [−.56, −.38]. People
+who performed better on the initial test also remembered
+ more on the final test on Day 1, r = .26, p < .001,
+95% CI = [.15, .37], and Day 2, r = .18, p = .002, 95%
+CI = [.07, .29]. As a result of the strong intercorrelations
+among the dependent measures (initial test, speed of
+learning, and long-term retention), we refer to the task
+as the learning-efficiency task from here forward.
+> 
+> Performance on the learning-efficiency task significantly
+ correlated across days for participants (Table 2),
+including scores on Test 1, r = .56, p < .001, 95% CI =
+[.47, .63], tests to criterion, r = .68, p < .001, 95% CI =
+[.61, .73], and final test, r = .68, p < .001, 95% CI = [.61,
+.74]. When the three individual measures were converted
+to z scores and combined into a single metric
+(learning-efficiency score, which is a composite of initial
+test, learning speed, and final retention), the correlation
+across days was also high, r = .68, p < .001,
+95% CI = [.61, .74].
+
+------
+
+```{r global_options, include=FALSE}
+# sets up some formatting options for the R Markdown document
+knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE)
+```
+
+# Step 1: Load packages and prepare report object
+
+```{r}
+# load packages
+library(tidyverse) # for data munging
+library(knitr) # for kable table formating
+library(haven) # import and export 'SPSS', 'Stata' and 'SAS' Files
+library(readxl) # import excel files
+library(CARPSreports) # custom report functions
+library(readr)
+```
+
+```{r}
+# Prepare report object. This will be updated automatically by the reproCheck function each time values are compared
+reportObject <- data.frame(dummyRow = TRUE, reportedValue = NA, obtainedValue = NA, valueType = NA, percentageError = NA, comparisonOutcome = NA, eyeballCheck = NA)
+```
+
+# Step 2: Load data
+
+```{r}
+study1_raw_df <- read_csv("data/Study1_LET_N=281_Dataset_osf.csv")
+```
+
+# Step 3: Tidy data
+
+The data is best broken down into three dataframes: one for the learning efficiency scores, one for experiment durations, and one for the scores over time.
+
+## Learning Efficiency Scores
+
+```{r}
+lescore_names <- c("INITIALTESTSCORE","TESTSTOCRITERION","FINALTESTSCORE")
+study1_lescores <- study1_raw_df %>%
+  # Manually list the relevant columns.
+  select(                                        
+    Subject,
+    INITIALTESTSCORE_S1, TESTSTOCRITERION_S1, FINALTESTSCORE_S1, LE_Score_S1,
+    INITIALTESTSCORE_S2, TESTSTOCRITERION_S2, FINALTESTSCORE_S2, LE_Score_S2
+    ) %>%
+  
+  # One observation per row...
+  gather(key="RawColumn", value="Score", -c("Subject")) %>%
+  
+  # One variable per column...
+  extract(RawColumn, c("Measure", "Day"), regex="(.*)_(S1|S2)") %>%
+  
+  # Handy trick that orders by "time" to match the order of Table 1
+  mutate(Measure=fct_relevel(Measure, lescore_names))
+```
+
+## Experiment Durations
+```{r}
+study1_experiment_duration <- study1_raw_df %>%
+  # List the relevant columns
+  select(Subject, starts_with("Experiment_Length")) %>%
+  
+  # One observation per row
+  gather(key="RawColumn", value="Duration", -c("Subject")) %>%
+  
+  # Do some renaming of values 
+  mutate(Day=str_extract(RawColumn, "A|B")) %>%
+  select(-c("RawColumn"))
+```
+
+## Scores Over Time
+```{r}
+study1_words_over_time <- study1_raw_df %>%
+  # List the relevant columns. Here, it's all Day 1's tests,
+  # and then the Learning Efficiency score.
+  select(Subject, INITIALTESTSCORE_S1, matches("TEST\\d+_S1"),
+         FINALTESTSCORE_S1, LE_Score_S1) %>%
+  
+  # Prepare some names for the regex parsing format
+  # Final test is test 17 so that it's to the right of all of them.
+  rename(TEST1_S1 = INITIALTESTSCORE_S1, TEST17_S1 = FINALTESTSCORE_S1) %>%
+  
+  # Convert the Learning Efficiency score to a quartile for grouping on the plot.
+  mutate(Quartile = ntile(LE_Score_S1, 4)) %>%
+  select(-c("LE_Score_S1")) %>%
+  
+  # One observation per row...
+  gather(key="RawColumn", value="Score", -c("Subject", "Quartile")) %>%
+  
+  # Extract test index from the old column name
+  extract("RawColumn", c("Test"), regex="TEST(\\d+)_S1") %>%
+  mutate(Test=as.numeric(Test)) %>%
+  
+  # If there's an NA, assume they've finished 
+  replace_na(list(Score=45))
+```
+
+# Step 4: Run analysis
+
+## Descriptive statistics
+
+### Learning Efficiency
+
+> For Test 1, after studying the items once, participants
+> on Day 1 recalled an average of 9.4 English words (SD =
+> 6.6) and on Day 2 an average of 11.1 words (SD = 8.2).
+>
+> To reach criterion, participants took an average of 8.3
+> tests (SD = 2.9) on Day 1 and 7.6 tests (SD = 2.8) on
+> < Day 2. 
+> 
+> The average cued-recall score on the final test
+> was 33.4 words (SD = 7.9) on Day 1 and 33.2 words
+> (SD = 8.7) on Day 2. 
+> 
+> ...
+>
+> Additional descriptive statistics are in Table 1.
+
+
+
+```{r}
+table1 <- study1_lescores %>%
+  filter(Measure!="LE_Score") %>%
+  group_by(Measure, Day) %>%
+  summarize(
+    M=mean(Score),
+    SD=sd(Score),
+    Minimum=quantile(Score)[1],
+    "Lower 25%"=quantile(Score)[2],
+    Mdn=quantile(Score)[3],
+    "Upper 25%"=quantile(Score)[4],
+    Maximum=quantile(Score)[5]
+  ) %>%
+  ungroup()
+kable(table1, digits=1)
+```
+
+Reprinted for comparison, Table 1 is below. **Bold** numbers indicate difference.
+
+|                  Measure |   Day |        M |      SD | Minimum | Lower 25% | Mdn | Upper 25% | Maximum | 
+|--------------------------|-------|---------:|--------:|--------:|----------:|----:|----------:|--------:|
+|             Test 1 Score | Day 1 |      9.4 |     6.6 |       0 |         5 |   8 |        12 |      42 |
+|             Test 1 Score | Day 2 |     11.1 |     8.2 |       0 |         5 |   9 |        15 |      42 | 
+| Tests-to-criterion score | Day 1 |      8.3 | **2.9** |       2 |         6 |   8 |        10 |      16 |
+| Tests-to-criterion score | Day 2 |      7.6 |     2.8 |       2 |         6 |   7 |         9 |      16 |
+|         Final-test score | Day 1 | **33.4** |     7.9 |       4 |        29 |  34 |        40 |      45 |
+|         Final-test score | Day 2 |     33.2 |     8.7 |       2 |        28 |  35 |        40 |      45 |
+
+```{r}
+reproCheck(reportedValue = '33.4', obtainedValue = '33.3', valueType = 'mean')
+reproCheck(reportedValue = '2.9', obtainedValue = '2.8', valueType='sd')
+```
+
+
+### Experiment Duration
+> For Day 1, the entire task (including
+informed consent, directions, and the 5-min delay)
+took an average of 50.3 min to complete (SD = 13.2,
+range = 28.8–119.0), whereas Day 2 took an average of
+45.7 min (SD = 14.0, range = 26.6–115.3). 
+
+```{r}
+duration_reports <- study1_experiment_duration %>%
+  filter(!is.na(Duration)) %>% # TODO: not sure why these are NAs
+  group_by(Day) %>%
+  summarize(
+    M=mean(Duration),
+    SD=sd(Duration),
+    Minimum=min(Duration),
+    Maximum=max(Duration)
+  )
+kable(duration_reports, digits=1)
+```
+
+
+## Inferential statistics
+
+### Correlating initial test to completion criterion
+
+> Participants who performed better on the initial test
+reached criterion more quickly (i.e., required fewer
+tests to criterion) on Day 1, r = −.60, p < .001, 95%
+confidence interval (CI) = [−.67, −.52], and Day 2, r =
+−.63, p < .001, 95% CI = [−.69, −.55].
+
+```{r}
+study1_lescores %>%
+  spread(Measure, Score) %>%
+  group_by(Day) %>%
+  do(cor = cor.test(.$INITIALTESTSCORE, .$TESTSTOCRITERION)) %>%
+  mutate(
+    r = cor$estimate,
+    p = cor$p.value,
+    "CI Low" = cor$conf.int[1],
+    "CI High" = cor$conf.int[2]
+  ) %>%
+  select(-c(cor)) %>%
+  mutate(p = format(p, format='e', digits=3)) %>%
+  kable(digits=2)
+```
+
+
+### Correlating completion criterion to retention
+
+> Participants who
+reached criterion quickly also had better retention of
+the word pairs after a delay (i.e., better final-test scores)
+on Day 1, r = −.57, p < .001, 95% CI = [−.64, −.49], and Day 2, r = −.48, p < .001, 95% CI = [−.56, −.38].
+
+```{r}
+study1_lescores %>%
+  spread(Measure, Score) %>%
+  group_by(Day) %>%
+  do(cor = cor.test(.$TESTSTOCRITERION, .$FINALTESTSCORE)) %>%
+  mutate(
+    r = cor$estimate,
+    p = cor$p.value,
+    "CI Low" = cor$conf.int[1],
+    "CI High" = cor$conf.int[2]
+  ) %>%
+  select(-c(cor)) %>%
+  mutate(p = format(p, format='e', digits=3)) %>%
+  kable(digits=2)
+```
+
+
+### Correlating initial test to retention
+
+> People who performed better on the initial test also remembered
+ more on the final test on Day 1, r = .26, p < .001,
+95% CI = [.15, .37], and Day 2, r = .18, p = .002, 95%
+CI = [.07, .29].
+
+```{r}
+study1_lescores %>%
+  spread(Measure, Score) %>%
+  group_by(Day) %>%
+  do(cor = cor.test(.$INITIALTESTSCORE, .$FINALTESTSCORE)) %>%
+  mutate(
+    r = cor$estimate,
+    p = cor$p.value,
+    "CI Low" = cor$conf.int[1],
+    "CI High" = cor$conf.int[2]
+  ) %>%
+  select(-c(cor)) %>%
+  mutate(
+    p = ifelse(p < 0.001, 
+               format(p, format='e', digits=3),
+               format(round(p, 3), nsmall=3)
+    )) %>%
+  kable(digits=2)
+  
+```
+
+### Correlation of each measure across days
+
+> Performance on the learning-efficiency task significantly
+ correlated across days for participants (Table 2),
+including scores on Test 1, r = .56, p < .001, 95% CI =
+[.47, .63], tests to criterion, r = .68, p < .001, 95% CI =
+[.61, .73], and final test, r = .68, p < .001, 95% CI = [.61,
+.74].
+
+```{r}
+daywise_correlation <- study1_lescores %>%
+  filter(Measure!="LE_Score") %>%
+  spread(Day, Score) %>%
+  group_by(Measure) %>%
+  do(cor = cor.test(.$S1, .$S2)) %>%
+  mutate(
+    r = cor$estimate,
+    p = cor$p.value,
+    "CI Low" = cor$conf.int[1],
+    "CI High" = cor$conf.int[2]
+  ) %>%
+  select(-c(cor))
+
+# format pvalues specially
+daywise_correlation$p <- format(daywise_correlation$p, format='e', digits=3)
+kable(daywise_correlation, digits=2)
+
+```
+
+### Correlation of learning efficiency across days
+
+First, consider how learning efficiency is computed. 
+
+```{r}
+daywise_le <- study1_lescores %>%
+  # It is ambiguous in the paper whether it groups by measure, or by measure and day.
+  # The numbers match with measure and day, so that is what I assume is used.
+  group_by(Measure, Day) %>%
+  mutate(zscore = scale(Score)) %>%
+  ungroup() %>%
+  mutate(Score = ifelse(Measure == 'LE_Score', Score, zscore)) %>%
+  select(-c("zscore")) %>%
+  spread(Measure, Score) %>%
+  # It is also unclear whether the z-scores are averaged or summed.
+  # The numbers match when they are averaged, so that is what I assume is used.
+  mutate("LearningEfficiency" = (INITIALTESTSCORE - TESTSTOCRITERION + FINALTESTSCORE)/3)
+
+# Is this the correct way to compute learning efficiency?
+# If this is the case, the table should be full of small values
+daywise_le %>%
+  group_by(Day) %>%
+  mutate("Error" = LearningEfficiency - LE_Score) %>%
+  summarize(
+    "Mean Error" = mean(Error),
+    "Mean Absolute Error" = mean(abs(Error)),
+    "Maximum Absolute Error" = max(abs(Error))
+  ) %>%
+  kable()
+```
+
+The table is indeed full of small values, indicating it is quite likely
+to have reproduced their method for computing learning efficiency.
+
+> When the three individual measures were converted
+to z scores and combined into a single metric
+(learning-efficiency score, which is a composite of initial
+test, learning speed, and final retention), the correlation
+across days was also high, r = .68, p < .001,
+95% CI = [.61, .74].
+
+```{r}
+
+daywise_correlation_le <- daywise_le %>%
+  select(c(Subject, Day, LearningEfficiency)) %>%
+  spread(Day, LearningEfficiency)
+
+daywise_correlation_le %>%
+  group_by(1) %>%
+  do(cor = cor.test(.$S1, .$S2)) %>%
+  mutate(
+    r = cor$estimate,
+    p = cor$p.value,
+    "CI Low" = cor$conf.int[1],
+    "CI High" = cor$conf.int[2]
+  ) %>%
+  select(-c(cor, 1)) %>%
+  mutate(p=format(p, format='e', digits=3)) %>%
+  kable(digits=2)
+```
+
+## Graphs
+
+### Figure 2, Top Panel - Learning curves, all participants
+
+> Performance across days. The learning curves for
+participants on the first day can be found in Figure 2 (top
+panel). Here one can see considerable variability in performance
+in all three measures (Test 1, tests to criterion,
+and final test) across participants...
+
+```{r}
+study1_words_over_time %>% 
+  ggplot(aes(x=Test, y=Score, group = Subject)) + 
+  geom_line(aes(color = Subject), show.legend = FALSE) +
+  geom_vline(xintercept=16, linetype="dotted")
+```
+
+### Figure 2, Bottom Panel - Learning curves, by quartile
+
+> Here one can see considerable variability in performance
+... across quartiles
+when binned by overall task performance (Fig. 2,
+bottom panel).
+
+The procedure as listed is not clear what "overall task performace" is, but the caption of the figure is more explicit:
+
+> The bottom panel
+shows learning curves after participants were placed into quartiles on the basis of their learning-efficiency scores. The
+graph represents each quartile’s mean correct recall for each test block.
+
+```{r}
+quartile_means <- study1_words_over_time %>% 
+  mutate(Quartile=as.factor(Quartile)) %>%
+  group_by(Quartile, Test) %>%
+  summarize(mean=mean(Score))
+
+quartile_means %>%
+  ggplot(aes(x=Test, y=mean, group=Quartile, color=Quartile)) + 
+  geom_line(size=1.5 ) + 
+  geom_point(size=2) + 
+  scale_color_manual(values=c("#FF0000", "#FFAAAA", "#AAAAFF", "#0000FF"))
+```
+
+# Step 5: Conclusion
+
+Almost all values were reproducable with little or no trouble. Two values had minor numerical errors, and the computation for the aggregate *learning efficiency* score was underspecified.
+
+The cause of the minor numerical errors was likely repeated rounding. 
+To illustrate this problem, suppose a value is calculated to be 6.1475.
+If it is rounded to two decimal places, its value is 6.15.
+If that rounded value is rounded again, this time to one decimal place, it becomes 6.2.
+This value is different from rounding to one decimal place straightaway, which is 6.1.
+
+This sort of double-rounding is likely to have happened if values are pasted into a manuscript with one rounding (e.g, two decimal places) and then edited in a later revision to only include one decimal place.
+
+When this rounding process was applied to all calculated decimal values in Table 1 of the original paper, discrepancies appeared only at the final test score mean of day 1, and the tests to criterion standard deviation of day 1 - exactly the two values which have minor numerical errors.
+
+```{r}
+# Note that R's 'round' function can't be used for this example, as it always rounds towards the even number.
+# It's likely that the authors used the at-half-round-up rule instead.
+# Sourced from https://stackoverflow.com/questions/12688717/round-up-from-5
+round_half_up = function(x, n) {
+  return(sign(x)*trunc(abs(x)*10^n + 0.5)/10^n)
+}
+table1 %>%
+  select(Measure, Day, M, SD) %>%
+  gather(Statistic, "Calculated", c(M, SD)) %>%
+  mutate(
+    "RoundedTwice" = Calculated %>% round_half_up(2) %>% round_half_up(1),
+    "RoundedOnce" = Calculated %>% round_half_up(1),
+    "Error" = abs(RoundedTwice - RoundedOnce)
+    ) %>%
+  rename("Rounded Twice"=RoundedTwice, "Rounded Once"=RoundedOnce) %>%
+  mutate(Calculated=round(Calculated, digits=5)) %>%
+  mutate_all({function (x) ifelse(.$Error > 0.0, paste("**", x, "**", sep=""), as.character(x))}) %>%
+  select(-c("Error")) %>%
+  kable()
+```
+
+The second minor trouble was determining exactly how the *learning efficiency* was calculated. The paper does explain that the z-scores were taken, but it does not specify over what group of data. It is obvious that two different kinds of measures would not be included together, e.g, tests-to-criterion and final test score. It is less clear whether day 1 and day 2's final test scores should be merged. Ultimately this was only decided based upon matching the calculated scores from the authors; data table.
+
+Furthermore, the combination of these z-scores is ambiguous. Two options are plausible: either the learning efficiency score will be a sum or an average of the z-scores of each of the three measures. To be fair, as they differ by a constant factor, most measures - including all correlations that were performed - will not be affected by the difference. Again, by matching with the authors' data table, it was determined that the learning efficiency score was an average.
+
+
+```{r}
+Author_Assistance = FALSE # was author assistance provided? (if so, enter TRUE)
+
+Insufficient_Information_Errors <- 0 # how many discrete insufficient information issues did you encounter?
+
+# Assess the causal locus (discrete reproducibility issues) of any reproducibility errors. Note that there doesn't necessarily have to be a one-to-one correspondance between discrete reproducibility issues and reproducibility errors. For example, it could be that the original article neglects to mention that a Greenhouse-Geisser correct was applied to ANOVA outcomes. This might result in multiple reproducibility errors, but there is a single causal locus (discrete reproducibility issue).
+
+locus_typo <- 2 # how many discrete issues did you encounter that related to typographical errors?
+locus_specification <- 0 # how many discrete issues did you encounter that related to incomplete, incorrect, or unclear specification of the original analyses?
+locus_analysis <- 0 # how many discrete issues did you encounter that related to errors in the authors' original analyses?
+locus_data <- 0 # how many discrete issues did you encounter that related to errors in the data files shared by the authors?
+locus_unidentified <- 0 # how many discrete issues were there for which you could not identify the cause
+
+# How many of the above issues were resolved through author assistance?
+locus_typo_resolved <- 0 # how many discrete issues did you encounter that related to typographical errors?
+locus_specification_resolved <- 0 # how many discrete issues did you encounter that related to incomplete, incorrect, or unclear specification of the original analyses?
+locus_analysis_resolved <- 0 # how many discrete issues did you encounter that related to errors in the authors' original analyses?
+locus_data_resolved <- 0 # how many discrete issues did you encounter that related to errors in the data files shared by the authors?
+locus_unidentified_resolved <- 0 # how many discrete issues were there for which you could not identify the cause
+
+Affects_Conclusion <- FALSE # Do any reproducibility issues encounter appear to affect the conclusions made in the original article? TRUE, FALSE, or NA. This is a subjective judgement, but you should taking into account multiple factors, such as the presence/absence of decision errors, the number of target outcomes that could not be reproduced, the type of outcomes that could or could not be reproduced, the difference in magnitude of effect sizes, and the predictions of the specific hypothesis under scrutiny.
+```
+
+```{r}
+reportObject <- reportObject %>%
+  filter(dummyRow == FALSE) %>% # remove the dummy row
+  select(-dummyRow) %>% # remove dummy row designation
+  mutate(articleID = articleID) %>% # add variables to report 
+  select(articleID, everything()) # make articleID first column
+
+# decide on final outcome
+if(any(reportObject$comparisonOutcome %in% c("MAJOR_ERROR", "DECISION_ERROR")) | Insufficient_Information_Errors > 0){
+  finalOutcome <- "Failure without author assistance"
+  if(Author_Assistance == T){
+    finalOutcome <- "Failure despite author assistance"
+  }
+}else{
+  finalOutcome <- "Success without author assistance"
+  if(Author_Assistance == T){
+    finalOutcome <- "Success with author assistance"
+  }
+}
+
+# collate report extra details
+reportExtras <- data.frame(articleID, pilotNames, copilotNames, pilotTTC, copilotTTC, pilotStartDate, copilotStartDate, completionDate, Author_Assistance, finalOutcome, Insufficient_Information_Errors, locus_typo, locus_specification, locus_analysis, locus_data, locus_unidentified, locus_typo_resolved, locus_specification_resolved, locus_analysis_resolved, locus_data_resolved, locus_unidentified_resolved)
+
+# save report objects
+if(reportType == "pilot"){
+  write_csv(reportObject, "pilotReportDetailed.csv")
+  write_csv(reportExtras, "pilotReportExtras.csv")
+}
+
+if(reportType == "final"){
+  write_csv(reportObject, "finalReportDetailed.csv")
+  write_csv(reportExtras, "finalReportExtras.csv")
+}
+```
+
+# Session information
+
+[This function will output information about the package versions used in this report:]
+
+```{r session_info, include=TRUE, echo=TRUE, results='markup'}
+devtools::session_info()
+```
