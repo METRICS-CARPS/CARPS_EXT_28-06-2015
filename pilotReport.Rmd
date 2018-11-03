@@ -212,7 +212,7 @@ study1_words_over_time <- study1_raw_df %>%
 
 
 ```{r}
-table1 <- study1_lescores %>%
+table1_calculated <- study1_lescores %>%
   filter(Measure!="LE_Score") %>%
   group_by(Measure, Day) %>%
   summarize(
@@ -225,25 +225,74 @@ table1 <- study1_lescores %>%
     Maximum=quantile(Score)[5]
   ) %>%
   ungroup()
-kable(table1, digits=1)
+kable(table1_calculated, digits=1)
 ```
 
 Reprinted for comparison, Table 1 is below. **Bold** numbers indicate difference.
 
-|                  Measure |   Day |        M |      SD | Minimum | Lower 25% | Mdn | Upper 25% | Maximum | 
-|--------------------------|-------|---------:|--------:|--------:|----------:|----:|----------:|--------:|
-|             Test 1 Score | Day 1 |      9.4 |     6.6 |       0 |         5 |   8 |        12 |      42 |
-|             Test 1 Score | Day 2 |     11.1 |     8.2 |       0 |         5 |   9 |        15 |      42 | 
-| Tests-to-criterion score | Day 1 |      8.3 | **2.9** |       2 |         6 |   8 |        10 |      16 |
-| Tests-to-criterion score | Day 2 |      7.6 |     2.8 |       2 |         6 |   7 |         9 |      16 |
-|         Final-test score | Day 1 | **33.4** |     7.9 |       4 |        29 |  34 |        40 |      45 |
-|         Final-test score | Day 2 |     33.2 |     8.7 |       2 |        28 |  35 |        40 |      45 |
-
 ```{r}
-reproCheck(reportedValue = '33.4', obtainedValue = '33.3', valueType = 'mean')
-reproCheck(reportedValue = '2.9', obtainedValue = '2.8', valueType='sd')
+table1_reported <- read_delim("data/table1.csv", "|", 
+    escape_double = FALSE, trim_ws = TRUE, col_types=cols(.default = "c"))
+kable(table1_reported)
 ```
 
+```{r}
+reported_measure_names <- c("Test 1 Score", "Tests-to-criterion score", "Final-test score")
+
+table1_calculated_long <- table1_calculated %>%
+  mutate(
+    Measure = plyr::mapvalues(Measure, from = lescore_names, to = reported_measure_names),
+    Day = plyr::mapvalues(Day, from=c("S1", "S2"), to=c("Day 1", "Day 2"))
+  ) %>%
+  gather(Statistic, Value, -c(Measure, Day))
+
+table1_reported_long <- table1_reported %>%
+  gather(Statistic, Value, -c(Measure, Day))
+
+full_join(table1_calculated_long, table1_reported_long, c("Measure", "Day", "Statistic")) %>%
+  mutate(ValueType = plyr::mapvalues(
+    Statistic, 
+    from=c("M", "SD", "Minimum", "Lower 25%", "Mdn", "Upper 25%", "Maximum"),
+    to=c("mean", "sd", "other", "other", "median", "other", "other")
+    )) %>%
+  rowwise() %>%
+  do(
+    Measure = .$Measure,
+    Day = .$Day,
+    Statistic = .$Statistic,
+    rc = ifelse(.$Value.y!=0, 
+                reproCheck(reportedValue=.$Value.y, obtainedValue=.$Value.x, valueType=.$ValueType) %>%
+                  filter(!dummyRow) %>%
+                  select(-c(dummyRow)) %>%
+                  list(),
+                NA)
+  ) %>% 
+  unnest(Measure, Day, Statistic, rc) %>%
+  rowwise() %>%
+  do(
+    Measure = .$Measure,
+    Day = .$Day,
+    Statistic = .$Statistic,
+    reportedValue = .$rc$reportedValue,
+    obtainedValue = .$rc$obtainedValue,
+    valueType = .$rc$valueType,
+    percentageError = .$rc$percentageError,
+    comparisonOutcome = .$rc$comparisonOutcome,
+    eyeballCheck = .$rc$eyeballCheck
+  ) %>% 
+  replace_na(
+    list(
+      reportedValue = list(0),
+      obtainedValue = list(0), 
+      valueType = list('other'),
+      percentageError=list(0),
+      comparisonOutcome = list('MATCH'),
+      eyeballCheck = list(NA)
+    )
+  ) %>%
+  unnest() %>%
+  kable()
+```
 
 ### Experiment Duration
 > For Day 1, the entire task (including
@@ -263,6 +312,16 @@ duration_reports <- study1_experiment_duration %>%
     Maximum=max(Duration)
   )
 kable(duration_reports, digits=1)
+
+reproCheck(reportedValue = '50.3', obtainedValue = duration_reports$M[1], valueType='mean')
+reproCheck(reportedValue = '13.2', obtainedValue = duration_reports$SD[1], valueType='sd')
+reproCheck(reportedValue = '28.8', obtainedValue = duration_reports$Minimum[1], valueType='other')
+reproCheck(reportedValue = '119.0', obtainedValue = duration_reports$Maximum[1], valueType='other')
+
+reproCheck(reportedValue = '45.7', obtainedValue = duration_reports$M[2], valueType='mean')
+reproCheck(reportedValue = '14.0', obtainedValue = duration_reports$SD[2], valueType='sd')
+reproCheck(reportedValue = '26.6', obtainedValue = duration_reports$Minimum[2], valueType='other')
+reproCheck(reportedValue = '115.3', obtainedValue = duration_reports$Maximum[2], valueType='other')
 ```
 
 
@@ -277,7 +336,7 @@ confidence interval (CI) = [−.67, −.52], and Day 2, r =
 −.63, p < .001, 95% CI = [−.69, −.55].
 
 ```{r}
-study1_lescores %>%
+initial_to_completion <- study1_lescores %>%
   spread(Measure, Score) %>%
   group_by(Day) %>%
   do(cor = cor.test(.$INITIALTESTSCORE, .$TESTSTOCRITERION)) %>%
@@ -288,8 +347,21 @@ study1_lescores %>%
     "CI High" = cor$conf.int[2]
   ) %>%
   select(-c(cor)) %>%
-  mutate(p = format(p, format='e', digits=3)) %>%
+  mutate(p = format(p, format='e', digits=3))
+
+initial_to_completion %>%
   kable(digits=2)
+
+reproCheck(reportedValue = '-.60', obtainedValue = initial_to_completion$r[1], valueType='r')
+reproCheck(reportedValue = '<.001', obtainedValue = initial_to_completion$p[1], valueType='p', eyeballCheck = TRUE)
+reproCheck(reportedValue = '-.67', obtainedValue = initial_to_completion$`CI Low`[1], valueType='ci')
+reproCheck(reportedValue = '-.52', obtainedValue = initial_to_completion$`CI High`[1], valueType='ci')
+
+reproCheck(reportedValue = '-.63', obtainedValue = initial_to_completion$r[2], valueType='r')
+reproCheck(reportedValue = '<.001', obtainedValue = initial_to_completion$p[2], valueType='p', eyeballCheck = TRUE)
+reproCheck(reportedValue = '-.69', obtainedValue = initial_to_completion$`CI Low`[2], valueType='ci')
+reproCheck(reportedValue = '-.55', obtainedValue = initial_to_completion$`CI High`[2], valueType='ci')
+
 ```
 
 
@@ -301,7 +373,7 @@ the word pairs after a delay (i.e., better final-test scores)
 on Day 1, r = −.57, p < .001, 95% CI = [−.64, −.49], and Day 2, r = −.48, p < .001, 95% CI = [−.56, −.38].
 
 ```{r}
-study1_lescores %>%
+completion_to_retention <- study1_lescores %>%
   spread(Measure, Score) %>%
   group_by(Day) %>%
   do(cor = cor.test(.$TESTSTOCRITERION, .$FINALTESTSCORE)) %>%
@@ -312,8 +384,20 @@ study1_lescores %>%
     "CI High" = cor$conf.int[2]
   ) %>%
   select(-c(cor)) %>%
-  mutate(p = format(p, format='e', digits=3)) %>%
+  mutate(p = format(p, format='e', digits=3))
+
+completion_to_retention %>%
   kable(digits=2)
+
+reproCheck(reportedValue = '-.57', obtainedValue = completion_to_retention$r[1], valueType='r')
+reproCheck(reportedValue = '<.001', obtainedValue = completion_to_retention$p[1], valueType='p', eyeballCheck = TRUE)
+reproCheck(reportedValue = '-.64', obtainedValue = completion_to_retention$`CI Low`[1], valueType='ci')
+reproCheck(reportedValue = '-.49', obtainedValue = completion_to_retention$`CI High`[1], valueType='ci')
+
+reproCheck(reportedValue = '-.48', obtainedValue = completion_to_retention$r[2], valueType='r')
+reproCheck(reportedValue = '<.001', obtainedValue = completion_to_retention$p[2], valueType='p', eyeballCheck = TRUE)
+reproCheck(reportedValue = '-.56', obtainedValue = completion_to_retention$`CI Low`[2], valueType='ci')
+reproCheck(reportedValue = '-.38', obtainedValue = completion_to_retention$`CI High`[2], valueType='ci')
 ```
 
 
@@ -325,7 +409,7 @@ study1_lescores %>%
 CI = [.07, .29].
 
 ```{r}
-study1_lescores %>%
+initial_to_retention <- study1_lescores %>%
   spread(Measure, Score) %>%
   group_by(Day) %>%
   do(cor = cor.test(.$INITIALTESTSCORE, .$FINALTESTSCORE)) %>%
@@ -340,8 +424,20 @@ study1_lescores %>%
     p = ifelse(p < 0.001, 
                format(p, format='e', digits=3),
                format(round(p, 3), nsmall=3)
-    )) %>%
+    )) 
+
+initial_to_retention %>%
   kable(digits=2)
+
+reproCheck(reportedValue = '.26', obtainedValue = initial_to_retention$r[1], valueType='r')
+reproCheck(reportedValue = '<.001', obtainedValue = initial_to_retention$p[1], valueType='p', eyeballCheck = TRUE)
+reproCheck(reportedValue = '.15', obtainedValue = initial_to_retention$`CI Low`[1], valueType='ci')
+reproCheck(reportedValue = '.37', obtainedValue = initial_to_retention$`CI High`[1], valueType='ci')
+
+reproCheck(reportedValue = '.18', obtainedValue = initial_to_retention$r[2], valueType='r')
+reproCheck(reportedValue = '.002', obtainedValue = initial_to_retention$p[2], valueType='p')
+reproCheck(reportedValue = '.07', obtainedValue = initial_to_retention$`CI Low`[2], valueType='ci')
+reproCheck(reportedValue = '.29', obtainedValue = initial_to_retention$`CI High`[2], valueType='ci')
   
 ```
 
@@ -371,6 +467,21 @@ daywise_correlation <- study1_lescores %>%
 # format pvalues specially
 daywise_correlation$p <- format(daywise_correlation$p, format='e', digits=3)
 kable(daywise_correlation, digits=2)
+
+reproCheck(reportedValue = '.56', obtainedValue = daywise_correlation$r[1], valueType='r')
+reproCheck(reportedValue = '<.001', obtainedValue = daywise_correlation$p[1], valueType='p', eyeballCheck = TRUE)
+reproCheck(reportedValue = '.47', obtainedValue = daywise_correlation$`CI Low`[1], valueType='ci')
+reproCheck(reportedValue = '.63', obtainedValue = daywise_correlation$`CI High`[1], valueType='ci')
+
+reproCheck(reportedValue = '.68', obtainedValue = daywise_correlation$r[2], valueType='r')
+reproCheck(reportedValue = '<.001', obtainedValue = daywise_correlation$p[2], valueType='p', eyeballCheck = TRUE)
+reproCheck(reportedValue = '.61', obtainedValue = daywise_correlation$`CI Low`[2], valueType='ci')
+reproCheck(reportedValue = '.73', obtainedValue = daywise_correlation$`CI High`[2], valueType='ci')
+
+reproCheck(reportedValue = '.68', obtainedValue = daywise_correlation$r[3], valueType='r')
+reproCheck(reportedValue = '<.001', obtainedValue = daywise_correlation$p[3], valueType='p', eyeballCheck = TRUE)
+reproCheck(reportedValue = '.61', obtainedValue = daywise_correlation$`CI Low`[3], valueType='ci')
+reproCheck(reportedValue = '.74', obtainedValue = daywise_correlation$`CI High`[3], valueType='ci')
 
 ```
 
@@ -419,9 +530,7 @@ across days was also high, r = .68, p < .001,
 
 daywise_correlation_le <- daywise_le %>%
   select(c(Subject, Day, LearningEfficiency)) %>%
-  spread(Day, LearningEfficiency)
-
-daywise_correlation_le %>%
+  spread(Day, LearningEfficiency) %>%
   group_by(1) %>%
   do(cor = cor.test(.$S1, .$S2)) %>%
   mutate(
@@ -431,8 +540,16 @@ daywise_correlation_le %>%
     "CI High" = cor$conf.int[2]
   ) %>%
   select(-c(cor, 1)) %>%
-  mutate(p=format(p, format='e', digits=3)) %>%
+  mutate(p=format(p, format='e', digits=3))
+
+daywise_correlation_le %>%
   kable(digits=2)
+
+reproCheck(reportedValue = '.68', obtainedValue = daywise_correlation_le$r[1], valueType='r')
+reproCheck(reportedValue = '<.001', obtainedValue = daywise_correlation_le$p[1], valueType='p', eyeballCheck = TRUE)
+reproCheck(reportedValue = '.61', obtainedValue = daywise_correlation_le$`CI Low`[1], valueType='ci')
+reproCheck(reportedValue = '.74', obtainedValue = daywise_correlation_le$`CI High`[1], valueType='ci')
+
 ```
 
 ## Graphs
@@ -480,7 +597,9 @@ quartile_means %>%
 
 # Step 5: Conclusion
 
-Almost all values were reproducable with little or no trouble. Two values had minor numerical errors, and the computation for the aggregate *learning efficiency* score was underspecified.
+Almost all values were reproducable with little or no trouble. Three values had minor numerical errors, and the computation for the aggregate *learning efficiency* score was underspecified.
+
+## Repeated Rounding
 
 The cause of the minor numerical errors was likely repeated rounding. 
 To illustrate this problem, suppose a value is calculated to be 6.1475.
@@ -490,7 +609,8 @@ This value is different from rounding to one decimal place straightaway, which i
 
 This sort of double-rounding is likely to have happened if values are pasted into a manuscript with one rounding (e.g, two decimal places) and then edited in a later revision to only include one decimal place.
 
-When this rounding process was applied to all calculated decimal values in Table 1 of the original paper, discrepancies appeared only at the final test score mean of day 1, and the tests to criterion standard deviation of day 1 - exactly the two values which have minor numerical errors.
+### Analysis of Table 1
+When this rounding process was applied to all calculated decimal values in Table 1 of the original paper, discrepancies appeared only at the final test score mean of day 1, and the tests to criterion standard deviation of day 1 - exactly the two values which have minor numerical errors in Table 1.
 
 ```{r}
 # Note that R's 'round' function can't be used for this example, as it always rounds towards the even number.
@@ -499,22 +619,71 @@ When this rounding process was applied to all calculated decimal values in Table
 round_half_up = function(x, n) {
   return(sign(x)*trunc(abs(x)*10^n + 0.5)/10^n)
 }
-table1 %>%
+table1_calculated %>%
   select(Measure, Day, M, SD) %>%
   gather(Statistic, "Calculated", c(M, SD)) %>%
   mutate(
-    "RoundedTwice" = Calculated %>% round_half_up(2) %>% round_half_up(1),
-    "RoundedOnce" = Calculated %>% round_half_up(1),
-    "Error" = abs(RoundedTwice - RoundedOnce)
+    "Rounded Twice" = Calculated %>% round_half_up(2) %>% round_half_up(1),
+    "Rounded Once" = Calculated %>% round_half_up(1),
+    "Error" = abs(`Rounded Twice` - `Rounded Once`)
     ) %>%
-  rename("Rounded Twice"=RoundedTwice, "Rounded Once"=RoundedOnce) %>%
   mutate(Calculated=round(Calculated, digits=5)) %>%
   mutate_all({function (x) ifelse(.$Error > 0.0, paste("**", x, "**", sep=""), as.character(x))}) %>%
   select(-c("Error")) %>%
   kable()
 ```
 
-The second minor trouble was determining exactly how the *learning efficiency* was calculated. The paper does explain that the z-scores were taken, but it does not specify over what group of data. It is obvious that two different kinds of measures would not be included together, e.g, tests-to-criterion and final test score. It is less clear whether day 1 and day 2's final test scores should be merged. Ultimately this was only decided based upon matching the calculated scores from the authors; data table.
+### Analysis of correlation values
+This process was also completed for all the correlation values, and the third minor numerical error appears in r-value of the number of tests-to-the-criterion across days.
+There is also a fourth entry that is bolded, i.e, it differs when rounded twice vs. rounded once, but the paper's reported value is correct. 
+
+```{r}
+
+all_correlative_values <- initial_to_completion %>%
+  mutate("Correlation Group" = "Initial to Completion") %>%
+  rename(Subgroup=Day) %>%
+  full_join(
+    completion_to_retention %>%
+      mutate("Correlation Group" = "Completion to Retention") %>%
+      rename(Subgroup=Day) %>%
+      full_join(
+        initial_to_retention %>%
+          mutate("Correlation Group" = "Initial to Retention") %>%
+          rename(Subgroup=Day) %>%
+          full_join(
+            daywise_correlation %>%
+              mutate("Correlation Group" = "Daywise Correlation") %>%
+              rename(Subgroup=Measure) %>%
+              full_join(
+                daywise_correlation_le %>%
+                mutate(
+                  "Correlation Group" = "Learning Efficiency Correlation",
+                  "Subgroup" = "--"
+                )
+              )
+          )
+      )
+  )
+
+all_correlative_values %>%
+  select(c("Correlation Group", "Subgroup", "r", "CI High", "CI Low")) %>%
+  gather(Statistic, Value, c("r", "CI High", "CI Low")) %>%
+  mutate(
+    "Rounded Twice" = Value %>% round_half_up(3) %>% round_half_up(2),
+    "Rounded Once" = Value %>% round_half_up(2),
+    "Error" = abs(`Rounded Twice` - `Rounded Once`)
+    ) %>%
+  mutate(Value=round(Value, digits=5)) %>%
+  arrange(`Correlation Group`, `Subgroup`) %>%
+  mutate_all({function (x) ifelse(.$Error > 0.0, paste("**", x, "**", sep=""), as.character(x))}) %>%
+  select(-c("Error")) %>%
+  kable()
+```
+
+
+## Ambiguous definition of *learning efficiency*
+
+The second minor trouble was determining exactly how the *learning efficiency* was calculated. The paper does explain that the z-scores were taken, but it does not specify over what group of data. It is obvious that two different kinds of measures would not be included together, e.g, tests-to-criterion and final test score. It is less clear whether day 1 and day 2's final test scores should be merged. Ultimately this was only decided based upon matching the calculated scores from the authors' data table.
 
 Furthermore, the combination of these z-scores is ambiguous. Two options are plausible: either the learning efficiency score will be a sum or an average of the z-scores of each of the three measures. To be fair, as they differ by a constant factor, most measures - including all correlations that were performed - will not be affected by the difference. Again, by matching with the authors' data table, it was determined that the learning efficiency score was an average.
 
@@ -526,7 +695,7 @@ Insufficient_Information_Errors <- 0 # how many discrete insufficient informatio
 
 # Assess the causal locus (discrete reproducibility issues) of any reproducibility errors. Note that there doesn't necessarily have to be a one-to-one correspondance between discrete reproducibility issues and reproducibility errors. For example, it could be that the original article neglects to mention that a Greenhouse-Geisser correct was applied to ANOVA outcomes. This might result in multiple reproducibility errors, but there is a single causal locus (discrete reproducibility issue).
 
-locus_typo <- 2 # how many discrete issues did you encounter that related to typographical errors?
+locus_typo <- 3 # how many discrete issues did you encounter that related to typographical errors?
 locus_specification <- 0 # how many discrete issues did you encounter that related to incomplete, incorrect, or unclear specification of the original analyses?
 locus_analysis <- 0 # how many discrete issues did you encounter that related to errors in the authors' original analyses?
 locus_data <- 0 # how many discrete issues did you encounter that related to errors in the data files shared by the authors?

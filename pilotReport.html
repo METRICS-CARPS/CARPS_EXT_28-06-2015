@@ -348,7 +348,7 @@ study1_lescores &lt;- study1_raw_df %&gt;%
 <p>…</p>
 <p>Additional descriptive statistics are in Table 1.</p>
 </blockquote>
-<pre class="r"><code>table1 &lt;- study1_lescores %&gt;%
+<pre class="r"><code>table1_calculated &lt;- study1_lescores %&gt;%
   filter(Measure!=&quot;LE_Score&quot;) %&gt;%
   group_by(Measure, Day) %&gt;%
   summarize(
@@ -361,7 +361,7 @@ study1_lescores &lt;- study1_raw_df %&gt;%
     Maximum=quantile(Score)[5]
   ) %&gt;%
   ungroup()
-kable(table1, digits=1)</code></pre>
+kable(table1_calculated, digits=1)</code></pre>
 <table>
 <thead>
 <tr class="header">
@@ -446,105 +446,666 @@ kable(table1, digits=1)</code></pre>
 </tbody>
 </table>
 <p>Reprinted for comparison, Table 1 is below. <strong>Bold</strong> numbers indicate difference.</p>
+<pre class="r"><code>table1_reported &lt;- read_delim(&quot;data/table1.csv&quot;, &quot;|&quot;, 
+    escape_double = FALSE, trim_ws = TRUE, col_types=cols(.default = &quot;c&quot;))
+kable(table1_reported)</code></pre>
 <table>
 <thead>
 <tr class="header">
-<th>Measure</th>
-<th>Day</th>
-<th align="right">M</th>
-<th align="right">SD</th>
-<th align="right">Minimum</th>
-<th align="right">Lower 25%</th>
-<th align="right">Mdn</th>
-<th align="right">Upper 25%</th>
-<th align="right">Maximum</th>
+<th align="left">Measure</th>
+<th align="left">Day</th>
+<th align="left">M</th>
+<th align="left">SD</th>
+<th align="left">Minimum</th>
+<th align="left">Lower 25%</th>
+<th align="left">Mdn</th>
+<th align="left">Upper 25%</th>
+<th align="left">Maximum</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>Test 1 Score</td>
-<td>Day 1</td>
-<td align="right">9.4</td>
-<td align="right">6.6</td>
-<td align="right">0</td>
-<td align="right">5</td>
-<td align="right">8</td>
-<td align="right">12</td>
-<td align="right">42</td>
+<td align="left">Test 1 Score</td>
+<td align="left">Day 1</td>
+<td align="left">9.4</td>
+<td align="left">6.6</td>
+<td align="left">0</td>
+<td align="left">5</td>
+<td align="left">8</td>
+<td align="left">12</td>
+<td align="left">42</td>
 </tr>
 <tr class="even">
-<td>Test 1 Score</td>
-<td>Day 2</td>
-<td align="right">11.1</td>
-<td align="right">8.2</td>
-<td align="right">0</td>
-<td align="right">5</td>
-<td align="right">9</td>
-<td align="right">15</td>
-<td align="right">42</td>
+<td align="left">Test 1 Score</td>
+<td align="left">Day 2</td>
+<td align="left">11.1</td>
+<td align="left">8.2</td>
+<td align="left">0</td>
+<td align="left">5</td>
+<td align="left">9</td>
+<td align="left">15</td>
+<td align="left">42</td>
 </tr>
 <tr class="odd">
-<td>Tests-to-criterion score</td>
-<td>Day 1</td>
-<td align="right">8.3</td>
-<td align="right"><strong>2.9</strong></td>
-<td align="right">2</td>
-<td align="right">6</td>
-<td align="right">8</td>
-<td align="right">10</td>
-<td align="right">16</td>
+<td align="left">Tests-to-criterion score</td>
+<td align="left">Day 1</td>
+<td align="left">8.3</td>
+<td align="left">2.9</td>
+<td align="left">2</td>
+<td align="left">6</td>
+<td align="left">8</td>
+<td align="left">10</td>
+<td align="left">16</td>
 </tr>
 <tr class="even">
-<td>Tests-to-criterion score</td>
-<td>Day 2</td>
-<td align="right">7.6</td>
-<td align="right">2.8</td>
-<td align="right">2</td>
-<td align="right">6</td>
-<td align="right">7</td>
-<td align="right">9</td>
-<td align="right">16</td>
+<td align="left">Tests-to-criterion score</td>
+<td align="left">Day 2</td>
+<td align="left">7.6</td>
+<td align="left">2.8</td>
+<td align="left">2</td>
+<td align="left">6</td>
+<td align="left">7</td>
+<td align="left">9</td>
+<td align="left">16</td>
 </tr>
 <tr class="odd">
-<td>Final-test score</td>
-<td>Day 1</td>
-<td align="right"><strong>33.4</strong></td>
-<td align="right">7.9</td>
-<td align="right">4</td>
-<td align="right">29</td>
-<td align="right">34</td>
-<td align="right">40</td>
-<td align="right">45</td>
+<td align="left">Final-test score</td>
+<td align="left">Day 1</td>
+<td align="left">33.4</td>
+<td align="left">7.9</td>
+<td align="left">4</td>
+<td align="left">29</td>
+<td align="left">34</td>
+<td align="left">40</td>
+<td align="left">45</td>
 </tr>
 <tr class="even">
-<td>Final-test score</td>
-<td>Day 2</td>
-<td align="right">33.2</td>
-<td align="right">8.7</td>
-<td align="right">2</td>
-<td align="right">28</td>
-<td align="right">35</td>
-<td align="right">40</td>
-<td align="right">45</td>
+<td align="left">Final-test score</td>
+<td align="left">Day 2</td>
+<td align="left">33.2</td>
+<td align="left">8.7</td>
+<td align="left">2</td>
+<td align="left">28</td>
+<td align="left">35</td>
+<td align="left">40</td>
+<td align="left">45</td>
 </tr>
 </tbody>
 </table>
-<pre class="r"><code>reproCheck(reportedValue = '33.4', obtainedValue = '33.3', valueType = 'mean')</code></pre>
-<pre><code>## [1] &quot;MINOR_ERROR for mean. The reported value (33.4) and the obtained value (33.3) differed by 0.3%. Note that the obtained value was rounded to 1 decimal places to match the reported value.&quot;</code></pre>
-<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
-## 1     TRUE            NA            NA      &lt;NA&gt;              NA
-## 2    FALSE          33.4          33.3      mean       0.2994012
-##   comparisonOutcome eyeballCheck
-## 1              &lt;NA&gt;           NA
-## 2       MINOR_ERROR           NA</code></pre>
-<pre class="r"><code>reproCheck(reportedValue = '2.9', obtainedValue = '2.8', valueType='sd')</code></pre>
-<pre><code>## [1] &quot;MINOR_ERROR for sd. The reported value (2.9) and the obtained value (2.8) differed by 3.45%. Note that the obtained value was rounded to 1 decimal places to match the reported value.&quot;</code></pre>
-<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
-## 1     TRUE            NA            NA      &lt;NA&gt;              NA
-## 2    FALSE           2.9           2.8        sd        3.448276
-##   comparisonOutcome eyeballCheck
-## 1              &lt;NA&gt;           NA
-## 2       MINOR_ERROR           NA</code></pre>
+<pre class="r"><code>reported_measure_names &lt;- c(&quot;Test 1 Score&quot;, &quot;Tests-to-criterion score&quot;, &quot;Final-test score&quot;)
+
+table1_calculated_long &lt;- table1_calculated %&gt;%
+  mutate(
+    Measure = plyr::mapvalues(Measure, from = lescore_names, to = reported_measure_names),
+    Day = plyr::mapvalues(Day, from=c(&quot;S1&quot;, &quot;S2&quot;), to=c(&quot;Day 1&quot;, &quot;Day 2&quot;))
+  ) %&gt;%
+  gather(Statistic, Value, -c(Measure, Day))
+
+table1_reported_long &lt;- table1_reported %&gt;%
+  gather(Statistic, Value, -c(Measure, Day))
+
+full_join(table1_calculated_long, table1_reported_long, c(&quot;Measure&quot;, &quot;Day&quot;, &quot;Statistic&quot;)) %&gt;%
+  mutate(ValueType = plyr::mapvalues(
+    Statistic, 
+    from=c(&quot;M&quot;, &quot;SD&quot;, &quot;Minimum&quot;, &quot;Lower 25%&quot;, &quot;Mdn&quot;, &quot;Upper 25%&quot;, &quot;Maximum&quot;),
+    to=c(&quot;mean&quot;, &quot;sd&quot;, &quot;other&quot;, &quot;other&quot;, &quot;median&quot;, &quot;other&quot;, &quot;other&quot;)
+    )) %&gt;%
+  rowwise() %&gt;%
+  do(
+    Measure = .$Measure,
+    Day = .$Day,
+    Statistic = .$Statistic,
+    rc = ifelse(.$Value.y!=0, 
+                reproCheck(reportedValue=.$Value.y, obtainedValue=.$Value.x, valueType=.$ValueType) %&gt;%
+                  filter(!dummyRow) %&gt;%
+                  select(-c(dummyRow)) %&gt;%
+                  list(),
+                NA)
+  ) %&gt;% 
+  unnest(Measure, Day, Statistic, rc) %&gt;%
+  rowwise() %&gt;%
+  do(
+    Measure = .$Measure,
+    Day = .$Day,
+    Statistic = .$Statistic,
+    reportedValue = .$rc$reportedValue,
+    obtainedValue = .$rc$obtainedValue,
+    valueType = .$rc$valueType,
+    percentageError = .$rc$percentageError,
+    comparisonOutcome = .$rc$comparisonOutcome,
+    eyeballCheck = .$rc$eyeballCheck
+  ) %&gt;% 
+  replace_na(
+    list(
+      reportedValue = list(0),
+      obtainedValue = list(0), 
+      valueType = list('other'),
+      percentageError=list(0),
+      comparisonOutcome = list('MATCH'),
+      eyeballCheck = list(NA)
+    )
+  ) %&gt;%
+  unnest() %&gt;%
+  kable()</code></pre>
+<pre><code>## [1] &quot;MATCH for mean. The reported value (9.4) and the obtained value (9.4) differed by 0%. Note that the obtained value was rounded to 1 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for mean. The reported value (11.1) and the obtained value (11.1) differed by 0%. Note that the obtained value was rounded to 1 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for mean. The reported value (8.3) and the obtained value (8.3) differed by 0%. Note that the obtained value was rounded to 1 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for mean. The reported value (7.6) and the obtained value (7.6) differed by 0%. Note that the obtained value was rounded to 1 decimal places to match the reported value.&quot;
+## [1] &quot;MINOR_ERROR for mean. The reported value (33.4) and the obtained value (33.3) differed by 0.3%. Note that the obtained value was rounded to 1 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for mean. The reported value (33.2) and the obtained value (33.2) differed by 0%. Note that the obtained value was rounded to 1 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for sd. The reported value (6.6) and the obtained value (6.6) differed by 0%. Note that the obtained value was rounded to 1 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for sd. The reported value (8.2) and the obtained value (8.2) differed by 0%. Note that the obtained value was rounded to 1 decimal places to match the reported value.&quot;
+## [1] &quot;MINOR_ERROR for sd. The reported value (2.9) and the obtained value (2.8) differed by 3.45%. Note that the obtained value was rounded to 1 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for sd. The reported value (2.8) and the obtained value (2.8) differed by 0%. Note that the obtained value was rounded to 1 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for sd. The reported value (7.9) and the obtained value (7.9) differed by 0%. Note that the obtained value was rounded to 1 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for sd. The reported value (8.7) and the obtained value (8.7) differed by 0%. Note that the obtained value was rounded to 1 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for other. The reported value (2) and the obtained value (2) differed by 0%. Note that the obtained value was rounded to 0 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for other. The reported value (2) and the obtained value (2) differed by 0%. Note that the obtained value was rounded to 0 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for other. The reported value (4) and the obtained value (4) differed by 0%. Note that the obtained value was rounded to 0 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for other. The reported value (2) and the obtained value (2) differed by 0%. Note that the obtained value was rounded to 0 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for other. The reported value (5) and the obtained value (5) differed by 0%. Note that the obtained value was rounded to 0 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for other. The reported value (5) and the obtained value (5) differed by 0%. Note that the obtained value was rounded to 0 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for other. The reported value (6) and the obtained value (6) differed by 0%. Note that the obtained value was rounded to 0 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for other. The reported value (6) and the obtained value (6) differed by 0%. Note that the obtained value was rounded to 0 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for other. The reported value (29) and the obtained value (29) differed by 0%. Note that the obtained value was rounded to 0 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for other. The reported value (28) and the obtained value (28) differed by 0%. Note that the obtained value was rounded to 0 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for median. The reported value (8) and the obtained value (8) differed by 0%. Note that the obtained value was rounded to 0 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for median. The reported value (9) and the obtained value (9) differed by 0%. Note that the obtained value was rounded to 0 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for median. The reported value (8) and the obtained value (8) differed by 0%. Note that the obtained value was rounded to 0 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for median. The reported value (7) and the obtained value (7) differed by 0%. Note that the obtained value was rounded to 0 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for median. The reported value (34) and the obtained value (34) differed by 0%. Note that the obtained value was rounded to 0 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for median. The reported value (35) and the obtained value (35) differed by 0%. Note that the obtained value was rounded to 0 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for other. The reported value (12) and the obtained value (12) differed by 0%. Note that the obtained value was rounded to 0 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for other. The reported value (15) and the obtained value (15) differed by 0%. Note that the obtained value was rounded to 0 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for other. The reported value (10) and the obtained value (10) differed by 0%. Note that the obtained value was rounded to 0 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for other. The reported value (9) and the obtained value (9) differed by 0%. Note that the obtained value was rounded to 0 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for other. The reported value (40) and the obtained value (40) differed by 0%. Note that the obtained value was rounded to 0 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for other. The reported value (40) and the obtained value (40) differed by 0%. Note that the obtained value was rounded to 0 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for other. The reported value (42) and the obtained value (42) differed by 0%. Note that the obtained value was rounded to 0 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for other. The reported value (42) and the obtained value (42) differed by 0%. Note that the obtained value was rounded to 0 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for other. The reported value (16) and the obtained value (16) differed by 0%. Note that the obtained value was rounded to 0 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for other. The reported value (16) and the obtained value (16) differed by 0%. Note that the obtained value was rounded to 0 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for other. The reported value (45) and the obtained value (45) differed by 0%. Note that the obtained value was rounded to 0 decimal places to match the reported value.&quot;
+## [1] &quot;MATCH for other. The reported value (45) and the obtained value (45) differed by 0%. Note that the obtained value was rounded to 0 decimal places to match the reported value.&quot;</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Measure</th>
+<th align="left">Day</th>
+<th align="left">Statistic</th>
+<th align="right">reportedValue</th>
+<th align="right">obtainedValue</th>
+<th align="left">valueType</th>
+<th align="right">percentageError</th>
+<th align="left">comparisonOutcome</th>
+<th align="left">eyeballCheck</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Test 1 Score</td>
+<td align="left">Day 1</td>
+<td align="left">M</td>
+<td align="right">9.4</td>
+<td align="right">9.4</td>
+<td align="left">mean</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Test 1 Score</td>
+<td align="left">Day 2</td>
+<td align="left">M</td>
+<td align="right">11.1</td>
+<td align="right">11.1</td>
+<td align="left">mean</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">Tests-to-criterion score</td>
+<td align="left">Day 1</td>
+<td align="left">M</td>
+<td align="right">8.3</td>
+<td align="right">8.3</td>
+<td align="left">mean</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Tests-to-criterion score</td>
+<td align="left">Day 2</td>
+<td align="left">M</td>
+<td align="right">7.6</td>
+<td align="right">7.6</td>
+<td align="left">mean</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">Final-test score</td>
+<td align="left">Day 1</td>
+<td align="left">M</td>
+<td align="right">33.4</td>
+<td align="right">33.3</td>
+<td align="left">mean</td>
+<td align="right">0.2994012</td>
+<td align="left">MINOR_ERROR</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Final-test score</td>
+<td align="left">Day 2</td>
+<td align="left">M</td>
+<td align="right">33.2</td>
+<td align="right">33.2</td>
+<td align="left">mean</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">Test 1 Score</td>
+<td align="left">Day 1</td>
+<td align="left">SD</td>
+<td align="right">6.6</td>
+<td align="right">6.6</td>
+<td align="left">sd</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Test 1 Score</td>
+<td align="left">Day 2</td>
+<td align="left">SD</td>
+<td align="right">8.2</td>
+<td align="right">8.2</td>
+<td align="left">sd</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">Tests-to-criterion score</td>
+<td align="left">Day 1</td>
+<td align="left">SD</td>
+<td align="right">2.9</td>
+<td align="right">2.8</td>
+<td align="left">sd</td>
+<td align="right">3.4482759</td>
+<td align="left">MINOR_ERROR</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Tests-to-criterion score</td>
+<td align="left">Day 2</td>
+<td align="left">SD</td>
+<td align="right">2.8</td>
+<td align="right">2.8</td>
+<td align="left">sd</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">Final-test score</td>
+<td align="left">Day 1</td>
+<td align="left">SD</td>
+<td align="right">7.9</td>
+<td align="right">7.9</td>
+<td align="left">sd</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Final-test score</td>
+<td align="left">Day 2</td>
+<td align="left">SD</td>
+<td align="right">8.7</td>
+<td align="right">8.7</td>
+<td align="left">sd</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">Test 1 Score</td>
+<td align="left">Day 1</td>
+<td align="left">Minimum</td>
+<td align="right">0.0</td>
+<td align="right">0.0</td>
+<td align="left">other</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Test 1 Score</td>
+<td align="left">Day 2</td>
+<td align="left">Minimum</td>
+<td align="right">0.0</td>
+<td align="right">0.0</td>
+<td align="left">other</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">Tests-to-criterion score</td>
+<td align="left">Day 1</td>
+<td align="left">Minimum</td>
+<td align="right">2.0</td>
+<td align="right">2.0</td>
+<td align="left">other</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Tests-to-criterion score</td>
+<td align="left">Day 2</td>
+<td align="left">Minimum</td>
+<td align="right">2.0</td>
+<td align="right">2.0</td>
+<td align="left">other</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">Final-test score</td>
+<td align="left">Day 1</td>
+<td align="left">Minimum</td>
+<td align="right">4.0</td>
+<td align="right">4.0</td>
+<td align="left">other</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Final-test score</td>
+<td align="left">Day 2</td>
+<td align="left">Minimum</td>
+<td align="right">2.0</td>
+<td align="right">2.0</td>
+<td align="left">other</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">Test 1 Score</td>
+<td align="left">Day 1</td>
+<td align="left">Lower 25%</td>
+<td align="right">5.0</td>
+<td align="right">5.0</td>
+<td align="left">other</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Test 1 Score</td>
+<td align="left">Day 2</td>
+<td align="left">Lower 25%</td>
+<td align="right">5.0</td>
+<td align="right">5.0</td>
+<td align="left">other</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">Tests-to-criterion score</td>
+<td align="left">Day 1</td>
+<td align="left">Lower 25%</td>
+<td align="right">6.0</td>
+<td align="right">6.0</td>
+<td align="left">other</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Tests-to-criterion score</td>
+<td align="left">Day 2</td>
+<td align="left">Lower 25%</td>
+<td align="right">6.0</td>
+<td align="right">6.0</td>
+<td align="left">other</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">Final-test score</td>
+<td align="left">Day 1</td>
+<td align="left">Lower 25%</td>
+<td align="right">29.0</td>
+<td align="right">29.0</td>
+<td align="left">other</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Final-test score</td>
+<td align="left">Day 2</td>
+<td align="left">Lower 25%</td>
+<td align="right">28.0</td>
+<td align="right">28.0</td>
+<td align="left">other</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">Test 1 Score</td>
+<td align="left">Day 1</td>
+<td align="left">Mdn</td>
+<td align="right">8.0</td>
+<td align="right">8.0</td>
+<td align="left">median</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Test 1 Score</td>
+<td align="left">Day 2</td>
+<td align="left">Mdn</td>
+<td align="right">9.0</td>
+<td align="right">9.0</td>
+<td align="left">median</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">Tests-to-criterion score</td>
+<td align="left">Day 1</td>
+<td align="left">Mdn</td>
+<td align="right">8.0</td>
+<td align="right">8.0</td>
+<td align="left">median</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Tests-to-criterion score</td>
+<td align="left">Day 2</td>
+<td align="left">Mdn</td>
+<td align="right">7.0</td>
+<td align="right">7.0</td>
+<td align="left">median</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">Final-test score</td>
+<td align="left">Day 1</td>
+<td align="left">Mdn</td>
+<td align="right">34.0</td>
+<td align="right">34.0</td>
+<td align="left">median</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Final-test score</td>
+<td align="left">Day 2</td>
+<td align="left">Mdn</td>
+<td align="right">35.0</td>
+<td align="right">35.0</td>
+<td align="left">median</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">Test 1 Score</td>
+<td align="left">Day 1</td>
+<td align="left">Upper 25%</td>
+<td align="right">12.0</td>
+<td align="right">12.0</td>
+<td align="left">other</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Test 1 Score</td>
+<td align="left">Day 2</td>
+<td align="left">Upper 25%</td>
+<td align="right">15.0</td>
+<td align="right">15.0</td>
+<td align="left">other</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">Tests-to-criterion score</td>
+<td align="left">Day 1</td>
+<td align="left">Upper 25%</td>
+<td align="right">10.0</td>
+<td align="right">10.0</td>
+<td align="left">other</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Tests-to-criterion score</td>
+<td align="left">Day 2</td>
+<td align="left">Upper 25%</td>
+<td align="right">9.0</td>
+<td align="right">9.0</td>
+<td align="left">other</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">Final-test score</td>
+<td align="left">Day 1</td>
+<td align="left">Upper 25%</td>
+<td align="right">40.0</td>
+<td align="right">40.0</td>
+<td align="left">other</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Final-test score</td>
+<td align="left">Day 2</td>
+<td align="left">Upper 25%</td>
+<td align="right">40.0</td>
+<td align="right">40.0</td>
+<td align="left">other</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">Test 1 Score</td>
+<td align="left">Day 1</td>
+<td align="left">Maximum</td>
+<td align="right">42.0</td>
+<td align="right">42.0</td>
+<td align="left">other</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Test 1 Score</td>
+<td align="left">Day 2</td>
+<td align="left">Maximum</td>
+<td align="right">42.0</td>
+<td align="right">42.0</td>
+<td align="left">other</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">Tests-to-criterion score</td>
+<td align="left">Day 1</td>
+<td align="left">Maximum</td>
+<td align="right">16.0</td>
+<td align="right">16.0</td>
+<td align="left">other</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Tests-to-criterion score</td>
+<td align="left">Day 2</td>
+<td align="left">Maximum</td>
+<td align="right">16.0</td>
+<td align="right">16.0</td>
+<td align="left">other</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">Final-test score</td>
+<td align="left">Day 1</td>
+<td align="left">Maximum</td>
+<td align="right">45.0</td>
+<td align="right">45.0</td>
+<td align="left">other</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Final-test score</td>
+<td align="left">Day 2</td>
+<td align="left">Maximum</td>
+<td align="right">45.0</td>
+<td align="right">45.0</td>
+<td align="left">other</td>
+<td align="right">0.0000000</td>
+<td align="left">MATCH</td>
+<td align="left">NA</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div id="experiment-duration" class="section level3">
 <h3>Experiment Duration</h3>
@@ -588,6 +1149,70 @@ kable(duration_reports, digits=1)</code></pre>
 </tr>
 </tbody>
 </table>
+<pre class="r"><code>reproCheck(reportedValue = '50.3', obtainedValue = duration_reports$M[1], valueType='mean')</code></pre>
+<pre><code>## [1] &quot;MATCH for mean. The reported value (50.3) and the obtained value (50.3) differed by 0%. Note that the obtained value was rounded to 1 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE          50.3          50.3      mean               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '13.2', obtainedValue = duration_reports$SD[1], valueType='sd')</code></pre>
+<pre><code>## [1] &quot;MATCH for sd. The reported value (13.2) and the obtained value (13.2) differed by 0%. Note that the obtained value was rounded to 1 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE          13.2          13.2        sd               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '28.8', obtainedValue = duration_reports$Minimum[1], valueType='other')</code></pre>
+<pre><code>## [1] &quot;MATCH for other. The reported value (28.8) and the obtained value (28.8) differed by 0%. Note that the obtained value was rounded to 1 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE          28.8          28.8     other               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '119.0', obtainedValue = duration_reports$Maximum[1], valueType='other')</code></pre>
+<pre><code>## [1] &quot;MATCH for other. The reported value (119) and the obtained value (119) differed by 0%. Note that the obtained value was rounded to 1 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE           119           119     other               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '45.7', obtainedValue = duration_reports$M[2], valueType='mean')</code></pre>
+<pre><code>## [1] &quot;MATCH for mean. The reported value (45.7) and the obtained value (45.7) differed by 0%. Note that the obtained value was rounded to 1 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE          45.7          45.7      mean               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '14.0', obtainedValue = duration_reports$SD[2], valueType='sd')</code></pre>
+<pre><code>## [1] &quot;MATCH for sd. The reported value (14) and the obtained value (14) differed by 0%. Note that the obtained value was rounded to 1 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE            14            14        sd               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '26.6', obtainedValue = duration_reports$Minimum[2], valueType='other')</code></pre>
+<pre><code>## [1] &quot;MATCH for other. The reported value (26.6) and the obtained value (26.6) differed by 0%. Note that the obtained value was rounded to 1 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE          26.6          26.6     other               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '115.3', obtainedValue = duration_reports$Maximum[2], valueType='other')</code></pre>
+<pre><code>## [1] &quot;MATCH for other. The reported value (115.3) and the obtained value (115.3) differed by 0%. Note that the obtained value was rounded to 1 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE         115.3         115.3     other               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
 </div>
 </div>
 <div id="inferential-statistics" class="section level2">
@@ -597,7 +1222,7 @@ kable(duration_reports, digits=1)</code></pre>
 <blockquote>
 <p>Participants who performed better on the initial test reached criterion more quickly (i.e., required fewer tests to criterion) on Day 1, r = −.60, p &lt; .001, 95% confidence interval (CI) = [−.67, −.52], and Day 2, r = −.63, p &lt; .001, 95% CI = [−.69, −.55].</p>
 </blockquote>
-<pre class="r"><code>study1_lescores %&gt;%
+<pre class="r"><code>initial_to_completion &lt;- study1_lescores %&gt;%
   spread(Measure, Score) %&gt;%
   group_by(Day) %&gt;%
   do(cor = cor.test(.$INITIALTESTSCORE, .$TESTSTOCRITERION)) %&gt;%
@@ -608,7 +1233,9 @@ kable(duration_reports, digits=1)</code></pre>
     &quot;CI High&quot; = cor$conf.int[2]
   ) %&gt;%
   select(-c(cor)) %&gt;%
-  mutate(p = format(p, format='e', digits=3)) %&gt;%
+  mutate(p = format(p, format='e', digits=3))
+
+initial_to_completion %&gt;%
   kable(digits=2)</code></pre>
 <table>
 <thead>
@@ -637,13 +1264,77 @@ kable(duration_reports, digits=1)</code></pre>
 </tr>
 </tbody>
 </table>
+<pre class="r"><code>reproCheck(reportedValue = '-.60', obtainedValue = initial_to_completion$r[1], valueType='r')</code></pre>
+<pre><code>## [1] &quot;MATCH for r. The reported value (-0.6) and the obtained value (-0.6) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE          -0.6          -0.6         r               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '&lt;.001', obtainedValue = initial_to_completion$p[1], valueType='p', eyeballCheck = TRUE)</code></pre>
+<pre><code>## [1] &quot;MATCH for p. Eyeball comparison only.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE          &lt;NA&gt;          &lt;NA&gt;      &lt;NA&gt;              NA
+## 2    FALSE         &lt;.001      4.08e-29         p              NA
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH         TRUE</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '-.67', obtainedValue = initial_to_completion$`CI Low`[1], valueType='ci')</code></pre>
+<pre><code>## [1] &quot;MATCH for ci. The reported value (-0.67) and the obtained value (-0.67) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE         -0.67         -0.67        ci               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '-.52', obtainedValue = initial_to_completion$`CI High`[1], valueType='ci')</code></pre>
+<pre><code>## [1] &quot;MATCH for ci. The reported value (-0.52) and the obtained value (-0.52) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE         -0.52         -0.52        ci               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '-.63', obtainedValue = initial_to_completion$r[2], valueType='r')</code></pre>
+<pre><code>## [1] &quot;MATCH for r. The reported value (-0.63) and the obtained value (-0.63) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE         -0.63         -0.63         r               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '&lt;.001', obtainedValue = initial_to_completion$p[2], valueType='p', eyeballCheck = TRUE)</code></pre>
+<pre><code>## [1] &quot;MATCH for p. Eyeball comparison only.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE          &lt;NA&gt;          &lt;NA&gt;      &lt;NA&gt;              NA
+## 2    FALSE         &lt;.001      5.98e-32         p              NA
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH         TRUE</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '-.69', obtainedValue = initial_to_completion$`CI Low`[2], valueType='ci')</code></pre>
+<pre><code>## [1] &quot;MATCH for ci. The reported value (-0.69) and the obtained value (-0.69) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE         -0.69         -0.69        ci               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '-.55', obtainedValue = initial_to_completion$`CI High`[2], valueType='ci')</code></pre>
+<pre><code>## [1] &quot;MATCH for ci. The reported value (-0.55) and the obtained value (-0.55) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE         -0.55         -0.55        ci               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
 </div>
 <div id="correlating-completion-criterion-to-retention" class="section level3">
 <h3>Correlating completion criterion to retention</h3>
 <blockquote>
 <p>Participants who reached criterion quickly also had better retention of the word pairs after a delay (i.e., better final-test scores) on Day 1, r = −.57, p &lt; .001, 95% CI = [−.64, −.49], and Day 2, r = −.48, p &lt; .001, 95% CI = [−.56, −.38].</p>
 </blockquote>
-<pre class="r"><code>study1_lescores %&gt;%
+<pre class="r"><code>completion_to_retention &lt;- study1_lescores %&gt;%
   spread(Measure, Score) %&gt;%
   group_by(Day) %&gt;%
   do(cor = cor.test(.$TESTSTOCRITERION, .$FINALTESTSCORE)) %&gt;%
@@ -654,7 +1345,9 @@ kable(duration_reports, digits=1)</code></pre>
     &quot;CI High&quot; = cor$conf.int[2]
   ) %&gt;%
   select(-c(cor)) %&gt;%
-  mutate(p = format(p, format='e', digits=3)) %&gt;%
+  mutate(p = format(p, format='e', digits=3))
+
+completion_to_retention %&gt;%
   kable(digits=2)</code></pre>
 <table>
 <thead>
@@ -683,13 +1376,77 @@ kable(duration_reports, digits=1)</code></pre>
 </tr>
 </tbody>
 </table>
+<pre class="r"><code>reproCheck(reportedValue = '-.57', obtainedValue = completion_to_retention$r[1], valueType='r')</code></pre>
+<pre><code>## [1] &quot;MATCH for r. The reported value (-0.57) and the obtained value (-0.57) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE         -0.57         -0.57         r               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '&lt;.001', obtainedValue = completion_to_retention$p[1], valueType='p', eyeballCheck = TRUE)</code></pre>
+<pre><code>## [1] &quot;MATCH for p. Eyeball comparison only.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE          &lt;NA&gt;          &lt;NA&gt;      &lt;NA&gt;              NA
+## 2    FALSE         &lt;.001      1.15e-25         p              NA
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH         TRUE</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '-.64', obtainedValue = completion_to_retention$`CI Low`[1], valueType='ci')</code></pre>
+<pre><code>## [1] &quot;MATCH for ci. The reported value (-0.64) and the obtained value (-0.64) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE         -0.64         -0.64        ci               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '-.49', obtainedValue = completion_to_retention$`CI High`[1], valueType='ci')</code></pre>
+<pre><code>## [1] &quot;MATCH for ci. The reported value (-0.49) and the obtained value (-0.49) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE         -0.49         -0.49        ci               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '-.48', obtainedValue = completion_to_retention$r[2], valueType='r')</code></pre>
+<pre><code>## [1] &quot;MATCH for r. The reported value (-0.48) and the obtained value (-0.48) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE         -0.48         -0.48         r               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '&lt;.001', obtainedValue = completion_to_retention$p[2], valueType='p', eyeballCheck = TRUE)</code></pre>
+<pre><code>## [1] &quot;MATCH for p. Eyeball comparison only.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE          &lt;NA&gt;          &lt;NA&gt;      &lt;NA&gt;              NA
+## 2    FALSE         &lt;.001      2.52e-17         p              NA
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH         TRUE</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '-.56', obtainedValue = completion_to_retention$`CI Low`[2], valueType='ci')</code></pre>
+<pre><code>## [1] &quot;MATCH for ci. The reported value (-0.56) and the obtained value (-0.56) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE         -0.56         -0.56        ci               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '-.38', obtainedValue = completion_to_retention$`CI High`[2], valueType='ci')</code></pre>
+<pre><code>## [1] &quot;MATCH for ci. The reported value (-0.38) and the obtained value (-0.38) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE         -0.38         -0.38        ci               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
 </div>
 <div id="correlating-initial-test-to-retention" class="section level3">
 <h3>Correlating initial test to retention</h3>
 <blockquote>
 <p>People who performed better on the initial test also remembered more on the final test on Day 1, r = .26, p &lt; .001, 95% CI = [.15, .37], and Day 2, r = .18, p = .002, 95% CI = [.07, .29].</p>
 </blockquote>
-<pre class="r"><code>study1_lescores %&gt;%
+<pre class="r"><code>initial_to_retention &lt;- study1_lescores %&gt;%
   spread(Measure, Score) %&gt;%
   group_by(Day) %&gt;%
   do(cor = cor.test(.$INITIALTESTSCORE, .$FINALTESTSCORE)) %&gt;%
@@ -704,7 +1461,9 @@ kable(duration_reports, digits=1)</code></pre>
     p = ifelse(p &lt; 0.001, 
                format(p, format='e', digits=3),
                format(round(p, 3), nsmall=3)
-    )) %&gt;%
+    )) 
+
+initial_to_retention %&gt;%
   kable(digits=2)</code></pre>
 <table>
 <thead>
@@ -733,6 +1492,70 @@ kable(duration_reports, digits=1)</code></pre>
 </tr>
 </tbody>
 </table>
+<pre class="r"><code>reproCheck(reportedValue = '.26', obtainedValue = initial_to_retention$r[1], valueType='r')</code></pre>
+<pre><code>## [1] &quot;MATCH for r. The reported value (0.26) and the obtained value (0.26) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE          0.26          0.26         r               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '&lt;.001', obtainedValue = initial_to_retention$p[1], valueType='p', eyeballCheck = TRUE)</code></pre>
+<pre><code>## [1] &quot;MATCH for p. Eyeball comparison only.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE          &lt;NA&gt;          &lt;NA&gt;      &lt;NA&gt;              NA
+## 2    FALSE         &lt;.001      7.59e-06         p              NA
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH         TRUE</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '.15', obtainedValue = initial_to_retention$`CI Low`[1], valueType='ci')</code></pre>
+<pre><code>## [1] &quot;MATCH for ci. The reported value (0.15) and the obtained value (0.15) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE          0.15          0.15        ci               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '.37', obtainedValue = initial_to_retention$`CI High`[1], valueType='ci')</code></pre>
+<pre><code>## [1] &quot;MATCH for ci. The reported value (0.37) and the obtained value (0.37) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE          0.37          0.37        ci               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '.18', obtainedValue = initial_to_retention$r[2], valueType='r')</code></pre>
+<pre><code>## [1] &quot;MATCH for r. The reported value (0.18) and the obtained value (0.18) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE          0.18          0.18         r               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '.002', obtainedValue = initial_to_retention$p[2], valueType='p')</code></pre>
+<pre><code>## [1] &quot;MATCH for p. The reported value (0.002) and the obtained value (0.002) differed by 0%. Note that the obtained value was rounded to 3 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE         0.002         0.002         p               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '.07', obtainedValue = initial_to_retention$`CI Low`[2], valueType='ci')</code></pre>
+<pre><code>## [1] &quot;MATCH for ci. The reported value (0.07) and the obtained value (0.07) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE          0.07          0.07        ci               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '.29', obtainedValue = initial_to_retention$`CI High`[2], valueType='ci')</code></pre>
+<pre><code>## [1] &quot;MATCH for ci. The reported value (0.29) and the obtained value (0.29) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE          0.29          0.29        ci               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
 </div>
 <div id="correlation-of-each-measure-across-days" class="section level3">
 <h3>Correlation of each measure across days</h3>
@@ -789,6 +1612,102 @@ kable(daywise_correlation, digits=2)</code></pre>
 </tr>
 </tbody>
 </table>
+<pre class="r"><code>reproCheck(reportedValue = '.56', obtainedValue = daywise_correlation$r[1], valueType='r')</code></pre>
+<pre><code>## [1] &quot;MATCH for r. The reported value (0.56) and the obtained value (0.56) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE          0.56          0.56         r               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '&lt;.001', obtainedValue = daywise_correlation$p[1], valueType='p', eyeballCheck = TRUE)</code></pre>
+<pre><code>## [1] &quot;MATCH for p. Eyeball comparison only.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE          &lt;NA&gt;          &lt;NA&gt;      &lt;NA&gt;              NA
+## 2    FALSE         &lt;.001      2.78e-24         p              NA
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH         TRUE</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '.47', obtainedValue = daywise_correlation$`CI Low`[1], valueType='ci')</code></pre>
+<pre><code>## [1] &quot;MATCH for ci. The reported value (0.47) and the obtained value (0.47) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE          0.47          0.47        ci               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '.63', obtainedValue = daywise_correlation$`CI High`[1], valueType='ci')</code></pre>
+<pre><code>## [1] &quot;MATCH for ci. The reported value (0.63) and the obtained value (0.63) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE          0.63          0.63        ci               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '.68', obtainedValue = daywise_correlation$r[2], valueType='r')</code></pre>
+<pre><code>## [1] &quot;MINOR_ERROR for r. The reported value (0.68) and the obtained value (0.67) differed by 1.47%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE          0.68          0.67         r        1.470588
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2       MINOR_ERROR           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '&lt;.001', obtainedValue = daywise_correlation$p[2], valueType='p', eyeballCheck = TRUE)</code></pre>
+<pre><code>## [1] &quot;MATCH for p. Eyeball comparison only.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE          &lt;NA&gt;          &lt;NA&gt;      &lt;NA&gt;              NA
+## 2    FALSE         &lt;.001      1.15e-38         p              NA
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH         TRUE</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '.61', obtainedValue = daywise_correlation$`CI Low`[2], valueType='ci')</code></pre>
+<pre><code>## [1] &quot;MATCH for ci. The reported value (0.61) and the obtained value (0.61) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE          0.61          0.61        ci               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '.73', obtainedValue = daywise_correlation$`CI High`[2], valueType='ci')</code></pre>
+<pre><code>## [1] &quot;MATCH for ci. The reported value (0.73) and the obtained value (0.73) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE          0.73          0.73        ci               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '.68', obtainedValue = daywise_correlation$r[3], valueType='r')</code></pre>
+<pre><code>## [1] &quot;MATCH for r. The reported value (0.68) and the obtained value (0.68) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE          0.68          0.68         r               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '&lt;.001', obtainedValue = daywise_correlation$p[3], valueType='p', eyeballCheck = TRUE)</code></pre>
+<pre><code>## [1] &quot;MATCH for p. Eyeball comparison only.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE          &lt;NA&gt;          &lt;NA&gt;      &lt;NA&gt;              NA
+## 2    FALSE         &lt;.001      1.18e-39         p              NA
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH         TRUE</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '.61', obtainedValue = daywise_correlation$`CI Low`[3], valueType='ci')</code></pre>
+<pre><code>## [1] &quot;MATCH for ci. The reported value (0.61) and the obtained value (0.61) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE          0.61          0.61        ci               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '.74', obtainedValue = daywise_correlation$`CI High`[3], valueType='ci')</code></pre>
+<pre><code>## [1] &quot;MATCH for ci. The reported value (0.74) and the obtained value (0.74) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE          0.74          0.74        ci               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
 </div>
 <div id="correlation-of-learning-efficiency-across-days" class="section level3">
 <h3>Correlation of learning efficiency across days</h3>
@@ -847,9 +1766,7 @@ daywise_le %&gt;%
 </blockquote>
 <pre class="r"><code>daywise_correlation_le &lt;- daywise_le %&gt;%
   select(c(Subject, Day, LearningEfficiency)) %&gt;%
-  spread(Day, LearningEfficiency)
-
-daywise_correlation_le %&gt;%
+  spread(Day, LearningEfficiency) %&gt;%
   group_by(1) %&gt;%
   do(cor = cor.test(.$S1, .$S2)) %&gt;%
   mutate(
@@ -859,7 +1776,9 @@ daywise_correlation_le %&gt;%
     &quot;CI High&quot; = cor$conf.int[2]
   ) %&gt;%
   select(-c(cor, 1)) %&gt;%
-  mutate(p=format(p, format='e', digits=3)) %&gt;%
+  mutate(p=format(p, format='e', digits=3))
+
+daywise_correlation_le %&gt;%
   kable(digits=2)</code></pre>
 <table>
 <thead>
@@ -879,6 +1798,38 @@ daywise_correlation_le %&gt;%
 </tr>
 </tbody>
 </table>
+<pre class="r"><code>reproCheck(reportedValue = '.68', obtainedValue = daywise_correlation_le$r[1], valueType='r')</code></pre>
+<pre><code>## [1] &quot;MATCH for r. The reported value (0.68) and the obtained value (0.68) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE          0.68          0.68         r               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '&lt;.001', obtainedValue = daywise_correlation_le$p[1], valueType='p', eyeballCheck = TRUE)</code></pre>
+<pre><code>## [1] &quot;MATCH for p. Eyeball comparison only.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE          &lt;NA&gt;          &lt;NA&gt;      &lt;NA&gt;              NA
+## 2    FALSE         &lt;.001      7.35e-40         p              NA
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH         TRUE</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '.61', obtainedValue = daywise_correlation_le$`CI Low`[1], valueType='ci')</code></pre>
+<pre><code>## [1] &quot;MATCH for ci. The reported value (0.61) and the obtained value (0.61) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE          0.61          0.61        ci               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
+<pre class="r"><code>reproCheck(reportedValue = '.74', obtainedValue = daywise_correlation_le$`CI High`[1], valueType='ci')</code></pre>
+<pre><code>## [1] &quot;MATCH for ci. The reported value (0.74) and the obtained value (0.74) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
+<pre><code>##   dummyRow reportedValue obtainedValue valueType percentageError
+## 1     TRUE            NA            NA      &lt;NA&gt;              NA
+## 2    FALSE          0.74          0.74        ci               0
+##   comparisonOutcome eyeballCheck
+## 1              &lt;NA&gt;           NA
+## 2             MATCH           NA</code></pre>
 </div>
 </div>
 <div id="graphs" class="section level2">
@@ -919,25 +1870,28 @@ quartile_means %&gt;%
 </div>
 <div id="step-5-conclusion" class="section level1">
 <h1>Step 5: Conclusion</h1>
-<p>Almost all values were reproducable with little or no trouble. Two values had minor numerical errors, and the computation for the aggregate <em>learning efficiency</em> score was underspecified.</p>
+<p>Almost all values were reproducable with little or no trouble. Three values had minor numerical errors, and the computation for the aggregate <em>learning efficiency</em> score was underspecified.</p>
+<div id="repeated-rounding" class="section level2">
+<h2>Repeated Rounding</h2>
 <p>The cause of the minor numerical errors was likely repeated rounding. To illustrate this problem, suppose a value is calculated to be 6.1475. If it is rounded to two decimal places, its value is 6.15. If that rounded value is rounded again, this time to one decimal place, it becomes 6.2. This value is different from rounding to one decimal place straightaway, which is 6.1.</p>
 <p>This sort of double-rounding is likely to have happened if values are pasted into a manuscript with one rounding (e.g, two decimal places) and then edited in a later revision to only include one decimal place.</p>
-<p>When this rounding process was applied to all calculated decimal values in Table 1 of the original paper, discrepancies appeared only at the final test score mean of day 1, and the tests to criterion standard deviation of day 1 - exactly the two values which have minor numerical errors.</p>
+<div id="analysis-of-table-1" class="section level3">
+<h3>Analysis of Table 1</h3>
+<p>When this rounding process was applied to all calculated decimal values in Table 1 of the original paper, discrepancies appeared only at the final test score mean of day 1, and the tests to criterion standard deviation of day 1 - exactly the two values which have minor numerical errors in Table 1.</p>
 <pre class="r"><code># Note that R's 'round' function can't be used for this example, as it always rounds towards the even number.
 # It's likely that the authors used the at-half-round-up rule instead.
 # Sourced from https://stackoverflow.com/questions/12688717/round-up-from-5
 round_half_up = function(x, n) {
   return(sign(x)*trunc(abs(x)*10^n + 0.5)/10^n)
 }
-table1 %&gt;%
+table1_calculated %&gt;%
   select(Measure, Day, M, SD) %&gt;%
   gather(Statistic, &quot;Calculated&quot;, c(M, SD)) %&gt;%
   mutate(
-    &quot;RoundedTwice&quot; = Calculated %&gt;% round_half_up(2) %&gt;% round_half_up(1),
-    &quot;RoundedOnce&quot; = Calculated %&gt;% round_half_up(1),
-    &quot;Error&quot; = abs(RoundedTwice - RoundedOnce)
+    &quot;Rounded Twice&quot; = Calculated %&gt;% round_half_up(2) %&gt;% round_half_up(1),
+    &quot;Rounded Once&quot; = Calculated %&gt;% round_half_up(1),
+    &quot;Error&quot; = abs(`Rounded Twice` - `Rounded Once`)
     ) %&gt;%
-  rename(&quot;Rounded Twice&quot;=RoundedTwice, &quot;Rounded Once&quot;=RoundedOnce) %&gt;%
   mutate(Calculated=round(Calculated, digits=5)) %&gt;%
   mutate_all({function (x) ifelse(.$Error &gt; 0.0, paste(&quot;**&quot;, x, &quot;**&quot;, sep=&quot;&quot;), as.character(x))}) %&gt;%
   select(-c(&quot;Error&quot;)) %&gt;%
@@ -1052,7 +2006,308 @@ table1 %&gt;%
 </tr>
 </tbody>
 </table>
-<p>The second minor trouble was determining exactly how the <em>learning efficiency</em> was calculated. The paper does explain that the z-scores were taken, but it does not specify over what group of data. It is obvious that two different kinds of measures would not be included together, e.g, tests-to-criterion and final test score. It is less clear whether day 1 and day 2’s final test scores should be merged. Ultimately this was only decided based upon matching the calculated scores from the authors; data table.</p>
+</div>
+<div id="analysis-of-correlation-values" class="section level3">
+<h3>Analysis of correlation values</h3>
+<p>This process was also completed for all the correlation values, and the third minor numerical error appears in r-value of the number of tests-to-the-criterion across days. There is also a fourth entry that is bolded, i.e, it differs when rounded twice vs. rounded once, but the paper’s reported value is correct.</p>
+<pre class="r"><code>all_correlative_values &lt;- initial_to_completion %&gt;%
+  mutate(&quot;Correlation Group&quot; = &quot;Initial to Completion&quot;) %&gt;%
+  rename(Subgroup=Day) %&gt;%
+  full_join(
+    completion_to_retention %&gt;%
+      mutate(&quot;Correlation Group&quot; = &quot;Completion to Retention&quot;) %&gt;%
+      rename(Subgroup=Day) %&gt;%
+      full_join(
+        initial_to_retention %&gt;%
+          mutate(&quot;Correlation Group&quot; = &quot;Initial to Retention&quot;) %&gt;%
+          rename(Subgroup=Day) %&gt;%
+          full_join(
+            daywise_correlation %&gt;%
+              mutate(&quot;Correlation Group&quot; = &quot;Daywise Correlation&quot;) %&gt;%
+              rename(Subgroup=Measure) %&gt;%
+              full_join(
+                daywise_correlation_le %&gt;%
+                mutate(
+                  &quot;Correlation Group&quot; = &quot;Learning Efficiency Correlation&quot;,
+                  &quot;Subgroup&quot; = &quot;--&quot;
+                )
+              )
+          )
+      )
+  )
+
+all_correlative_values %&gt;%
+  select(c(&quot;Correlation Group&quot;, &quot;Subgroup&quot;, &quot;r&quot;, &quot;CI High&quot;, &quot;CI Low&quot;)) %&gt;%
+  gather(Statistic, Value, c(&quot;r&quot;, &quot;CI High&quot;, &quot;CI Low&quot;)) %&gt;%
+  mutate(
+    &quot;Rounded Twice&quot; = Value %&gt;% round_half_up(3) %&gt;% round_half_up(2),
+    &quot;Rounded Once&quot; = Value %&gt;% round_half_up(2),
+    &quot;Error&quot; = abs(`Rounded Twice` - `Rounded Once`)
+    ) %&gt;%
+  mutate(Value=round(Value, digits=5)) %&gt;%
+  arrange(`Correlation Group`, `Subgroup`) %&gt;%
+  mutate_all({function (x) ifelse(.$Error &gt; 0.0, paste(&quot;**&quot;, x, &quot;**&quot;, sep=&quot;&quot;), as.character(x))}) %&gt;%
+  select(-c(&quot;Error&quot;)) %&gt;%
+  kable()</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Correlation Group</th>
+<th align="left">Subgroup</th>
+<th align="left">Statistic</th>
+<th align="left">Value</th>
+<th align="left">Rounded Twice</th>
+<th align="left">Rounded Once</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Completion to Retention</td>
+<td align="left">S1</td>
+<td align="left">r</td>
+<td align="left">-0.57053</td>
+<td align="left">-0.57</td>
+<td align="left">-0.57</td>
+</tr>
+<tr class="even">
+<td align="left">Completion to Retention</td>
+<td align="left">S1</td>
+<td align="left">CI High</td>
+<td align="left">-0.48596</td>
+<td align="left">-0.49</td>
+<td align="left">-0.49</td>
+</tr>
+<tr class="odd">
+<td align="left"><strong>Completion to Retention</strong></td>
+<td align="left"><strong>S1</strong></td>
+<td align="left"><strong>CI Low</strong></td>
+<td align="left"><strong>-0.64451</strong></td>
+<td align="left"><strong>-0.65</strong></td>
+<td align="left"><strong>-0.64</strong></td>
+</tr>
+<tr class="even">
+<td align="left">Completion to Retention</td>
+<td align="left">S2</td>
+<td align="left">r</td>
+<td align="left">-0.47638</td>
+<td align="left">-0.48</td>
+<td align="left">-0.48</td>
+</tr>
+<tr class="odd">
+<td align="left">Completion to Retention</td>
+<td align="left">S2</td>
+<td align="left">CI High</td>
+<td align="left">-0.38058</td>
+<td align="left">-0.38</td>
+<td align="left">-0.38</td>
+</tr>
+<tr class="even">
+<td align="left">Completion to Retention</td>
+<td align="left">S2</td>
+<td align="left">CI Low</td>
+<td align="left">-0.56206</td>
+<td align="left">-0.56</td>
+<td align="left">-0.56</td>
+</tr>
+<tr class="odd">
+<td align="left">Daywise Correlation</td>
+<td align="left">FINALTESTSCORE</td>
+<td align="left">r</td>
+<td align="left">0.68111</td>
+<td align="left">0.68</td>
+<td align="left">0.68</td>
+</tr>
+<tr class="even">
+<td align="left">Daywise Correlation</td>
+<td align="left">FINALTESTSCORE</td>
+<td align="left">CI High</td>
+<td align="left">0.73921</td>
+<td align="left">0.74</td>
+<td align="left">0.74</td>
+</tr>
+<tr class="odd">
+<td align="left">Daywise Correlation</td>
+<td align="left">FINALTESTSCORE</td>
+<td align="left">CI Low</td>
+<td align="left">0.61295</td>
+<td align="left">0.61</td>
+<td align="left">0.61</td>
+</tr>
+<tr class="even">
+<td align="left">Daywise Correlation</td>
+<td align="left">INITIALTESTSCORE</td>
+<td align="left">r</td>
+<td align="left">0.55684</td>
+<td align="left">0.56</td>
+<td align="left">0.56</td>
+</tr>
+<tr class="odd">
+<td align="left">Daywise Correlation</td>
+<td align="left">INITIALTESTSCORE</td>
+<td align="left">CI High</td>
+<td align="left">0.63263</td>
+<td align="left">0.63</td>
+<td align="left">0.63</td>
+</tr>
+<tr class="even">
+<td align="left">Daywise Correlation</td>
+<td align="left">INITIALTESTSCORE</td>
+<td align="left">CI Low</td>
+<td align="left">0.47048</td>
+<td align="left">0.47</td>
+<td align="left">0.47</td>
+</tr>
+<tr class="odd">
+<td align="left"><strong>Daywise Correlation</strong></td>
+<td align="left"><strong>TESTSTOCRITERION</strong></td>
+<td align="left"><strong>r</strong></td>
+<td align="left"><strong>0.67462</strong></td>
+<td align="left"><strong>0.68</strong></td>
+<td align="left"><strong>0.67</strong></td>
+</tr>
+<tr class="even">
+<td align="left">Daywise Correlation</td>
+<td align="left">TESTSTOCRITERION</td>
+<td align="left">CI High</td>
+<td align="left">0.73372</td>
+<td align="left">0.73</td>
+<td align="left">0.73</td>
+</tr>
+<tr class="odd">
+<td align="left">Daywise Correlation</td>
+<td align="left">TESTSTOCRITERION</td>
+<td align="left">CI Low</td>
+<td align="left">0.6054</td>
+<td align="left">0.61</td>
+<td align="left">0.61</td>
+</tr>
+<tr class="even">
+<td align="left">Initial to Completion</td>
+<td align="left">S1</td>
+<td align="left">r</td>
+<td align="left">-0.60217</td>
+<td align="left">-0.6</td>
+<td align="left">-0.6</td>
+</tr>
+<tr class="odd">
+<td align="left">Initial to Completion</td>
+<td align="left">S1</td>
+<td align="left">CI High</td>
+<td align="left">-0.52194</td>
+<td align="left">-0.52</td>
+<td align="left">-0.52</td>
+</tr>
+<tr class="even">
+<td align="left">Initial to Completion</td>
+<td align="left">S1</td>
+<td align="left">CI Low</td>
+<td align="left">-0.67185</td>
+<td align="left">-0.67</td>
+<td align="left">-0.67</td>
+</tr>
+<tr class="odd">
+<td align="left">Initial to Completion</td>
+<td align="left">S2</td>
+<td align="left">r</td>
+<td align="left">-0.62576</td>
+<td align="left">-0.63</td>
+<td align="left">-0.63</td>
+</tr>
+<tr class="even">
+<td align="left">Initial to Completion</td>
+<td align="left">S2</td>
+<td align="left">CI High</td>
+<td align="left">-0.54894</td>
+<td align="left">-0.55</td>
+<td align="left">-0.55</td>
+</tr>
+<tr class="odd">
+<td align="left">Initial to Completion</td>
+<td align="left">S2</td>
+<td align="left">CI Low</td>
+<td align="left">-0.69209</td>
+<td align="left">-0.69</td>
+<td align="left">-0.69</td>
+</tr>
+<tr class="even">
+<td align="left">Initial to Retention</td>
+<td align="left">S1</td>
+<td align="left">r</td>
+<td align="left">0.26349</td>
+<td align="left">0.26</td>
+<td align="left">0.26</td>
+</tr>
+<tr class="odd">
+<td align="left">Initial to Retention</td>
+<td align="left">S1</td>
+<td align="left">CI High</td>
+<td align="left">0.36912</td>
+<td align="left">0.37</td>
+<td align="left">0.37</td>
+</tr>
+<tr class="even">
+<td align="left">Initial to Retention</td>
+<td align="left">S1</td>
+<td align="left">CI Low</td>
+<td align="left">0.15114</td>
+<td align="left">0.15</td>
+<td align="left">0.15</td>
+</tr>
+<tr class="odd">
+<td align="left">Initial to Retention</td>
+<td align="left">S2</td>
+<td align="left">r</td>
+<td align="left">0.18268</td>
+<td align="left">0.18</td>
+<td align="left">0.18</td>
+</tr>
+<tr class="even">
+<td align="left">Initial to Retention</td>
+<td align="left">S2</td>
+<td align="left">CI High</td>
+<td align="left">0.29342</td>
+<td align="left">0.29</td>
+<td align="left">0.29</td>
+</tr>
+<tr class="odd">
+<td align="left">Initial to Retention</td>
+<td align="left">S2</td>
+<td align="left">CI Low</td>
+<td align="left">0.0671</td>
+<td align="left">0.07</td>
+<td align="left">0.07</td>
+</tr>
+<tr class="even">
+<td align="left">Learning Efficiency Correlation</td>
+<td align="left">–</td>
+<td align="left">r</td>
+<td align="left">0.68244</td>
+<td align="left">0.68</td>
+<td align="left">0.68</td>
+</tr>
+<tr class="odd">
+<td align="left">Learning Efficiency Correlation</td>
+<td align="left">–</td>
+<td align="left">CI High</td>
+<td align="left">0.74033</td>
+<td align="left">0.74</td>
+<td align="left">0.74</td>
+</tr>
+<tr class="even">
+<td align="left">Learning Efficiency Correlation</td>
+<td align="left">–</td>
+<td align="left">CI Low</td>
+<td align="left">0.6145</td>
+<td align="left">0.61</td>
+<td align="left">0.61</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="ambiguous-definition-of-learning-efficiency" class="section level2">
+<h2>Ambiguous definition of <em>learning efficiency</em></h2>
+<p>The second minor trouble was determining exactly how the <em>learning efficiency</em> was calculated. The paper does explain that the z-scores were taken, but it does not specify over what group of data. It is obvious that two different kinds of measures would not be included together, e.g, tests-to-criterion and final test score. It is less clear whether day 1 and day 2’s final test scores should be merged. Ultimately this was only decided based upon matching the calculated scores from the authors’ data table.</p>
 <p>Furthermore, the combination of these z-scores is ambiguous. Two options are plausible: either the learning efficiency score will be a sum or an average of the z-scores of each of the three measures. To be fair, as they differ by a constant factor, most measures - including all correlations that were performed - will not be affected by the difference. Again, by matching with the authors’ data table, it was determined that the learning efficiency score was an average.</p>
 <pre class="r"><code>Author_Assistance = FALSE # was author assistance provided? (if so, enter TRUE)
 
@@ -1060,7 +2315,7 @@ Insufficient_Information_Errors &lt;- 0 # how many discrete insufficient informa
 
 # Assess the causal locus (discrete reproducibility issues) of any reproducibility errors. Note that there doesn't necessarily have to be a one-to-one correspondance between discrete reproducibility issues and reproducibility errors. For example, it could be that the original article neglects to mention that a Greenhouse-Geisser correct was applied to ANOVA outcomes. This might result in multiple reproducibility errors, but there is a single causal locus (discrete reproducibility issue).
 
-locus_typo &lt;- 2 # how many discrete issues did you encounter that related to typographical errors?
+locus_typo &lt;- 3 # how many discrete issues did you encounter that related to typographical errors?
 locus_specification &lt;- 0 # how many discrete issues did you encounter that related to incomplete, incorrect, or unclear specification of the original analyses?
 locus_analysis &lt;- 0 # how many discrete issues did you encounter that related to errors in the authors' original analyses?
 locus_data &lt;- 0 # how many discrete issues did you encounter that related to errors in the data files shared by the authors?
@@ -1106,6 +2361,7 @@ if(reportType == &quot;final&quot;){
   write_csv(reportObject, &quot;finalReportDetailed.csv&quot;)
   write_csv(reportExtras, &quot;finalReportExtras.csv&quot;)
 }</code></pre>
+</div>
 </div>
 <div id="session-information" class="section level1">
 <h1>Session information</h1>
